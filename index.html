@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>Sistema de Gestão DEMAP | Enterprise</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.svg" />
+
+    <!-- Fonte Inter (Padrão Profissional) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: { sans: ["Inter", "sans-serif"] },
+            animation: {
+              "fade-in": "fadeIn 0.3s ease-out",
+              "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+              "pulse-fast": "pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "toast-progress": "toastProgress 3s linear forwards",
+            },
+            keyframes: {
+              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+              slideUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+              toastProgress: {
+                "0%": { width: "100%" },
+                "100%": { width: "0%" },
+              },
+            },
+            colors: {
+              brand: {
+                50: "#eff6ff",
+                100: "#dbeafe",
+                500: "#3b82f6",
+                600: "#2563eb",
+                700: "#1d4ed8",
+                900: "#1e3a8a",
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Chart.js para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- FontAwesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <style>
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+
+      .tab-content {
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .tab-content.active {
+        display: block;
+        opacity: 1;
+        animation: fadeIn 0.4s ease-out;
+      }
+
+      #toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .ui-field {
+        min-height: 46px;
+        border-radius: 14px;
+        padding: 0.625rem 0.875rem;
+        box-sizing: border-box;
+      }
+
+      .ui-btn {
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.625rem 0.875rem;
+        border-radius: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        box-sizing: border-box;
+      }
+
+      .ui-grid {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        gap: 1.25rem;
+        align-items: stretch;
+      }
+
+      .ui-grid > * {
+        min-height: 44px;
+      }
+
+      html,
+      body {
+        overflow-x: hidden;
+      }
+
+      body {
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(191, 219, 254, 0.25),
+            transparent 25%
+          ),
+          linear-gradient(135deg, #f8fbff 0%, #f5f7ff 45%, #f8fafc 100%);
+        color: #0f172a;
+        cursor: default;
+      }
+
+      body,
+      main,
+      aside,
+      header,
+      section,
+      article,
+      div,
+      span,
+      p,
+      h1,
+      h2,
+      h3,
+      label {
+        cursor: default;
+      }
+
+      button,
+      a,
+      input,
+      select,
+      textarea,
+      [role="button"],
+      [onclick],
+      .interactive,
+      .tab-btn,
+      .sidebar-item {
+        cursor: pointer;
+      }
+
+      input,
+      textarea,
+      select {
+        cursor: text;
+      }
+
+      :not(input):not(textarea):not(select) {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+      }
+
+      .glass-card {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        box-shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.28);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease,
+          border-color 180ms ease;
+      }
+
+      .glass-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(99, 102, 241, 0.25);
+        box-shadow: 0 22px 50px -22px rgba(79, 70, 229, 0.35);
+      }
+
+      .soft-ring {
+        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+      }
+
+      .ui-btn,
+      .ui-field {
+        transition: all 180ms ease;
+      }
+
+      .ui-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 30px -18px rgba(37, 99, 235, 0.35);
+      }
+
+      .ui-field:hover {
+        background: rgba(255, 255, 255, 0.96);
+      }
+
+      .no-select {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+      }
+
+      .panel-card {
+        background: rgba(255, 255, 255, 0.96);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+        border-radius: 24px;
+        box-shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.28);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+
+      .field-input {
+        min-height: 46px;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        background: rgba(248, 250, 252, 0.92);
+        color: #0f172a;
+        padding: 0.625rem 0.875rem;
+        box-sizing: border-box;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      .btn-base {
+        min-height: 46px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.625rem 0.875rem;
+        border-radius: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+        box-sizing: border-box;
+        transition: all 180ms ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        color: #fff;
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        box-shadow: 0 14px 30px -18px rgba(37, 99, 235, 0.35);
+      }
+
+      .btn-secondary {
+        background: #fff;
+        color: #2563eb;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.25);
+      }
+
+      .btn-success {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+      }
+
+      .btn-base:hover,
+      .btn-primary:hover,
+      .btn-secondary:hover,
+      .btn-success:hover {
+        transform: translateY(-1px);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+
+      @media (max-width: 640px) {
+        .ui-grid {
+          gap: 0.875rem;
+        }
+
+        .field-input,
+        .btn-base,
+        button,
+        select,
+        input,
+        textarea {
+          max-width: 100%;
+          width: 100%;
+        }
+
+        .btn-base {
+          justify-content: center;
+          text-align: center;
+        }
+      }
+
+      @media (max-width: 1024px) {
+        .app-shell {
+          overflow-x: hidden;
+          min-width: 0;
+        }
+
+        .content-scroll {
+          min-width: 0;
+          overflow-x: hidden;
+        }
+      }
+
+      :focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+      }
+
+      .ui-field:focus {
+        box-shadow:
+          0 0 0 4px rgba(59, 130, 246, 0.14),
+          0 14px 30px -18px rgba(37, 99, 235, 0.35);
+      }
+
+      .toast {
+        position: relative;
+        min-width: 320px;
+        padding: 16px;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+      }
+      .toast-progress {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 3px;
+        background: currentColor;
+        animation: toast-progress 3s linear forwards;
+      }
+      .toast.success {
+        border-left: 4px solid #10b981;
+      }
+      .toast.success .toast-progress {
+        background: #10b981;
+      }
+      .toast.error {
+        border-left: 4px solid #ef4444;
+      }
+      .toast.error .toast-progress {
+        background: #ef4444;
+      }
+      .toast.info {
+        border-left: 4px solid #3b82f6;
+      }
+      .toast.info .toast-progress {
+        background: #3b82f6;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 font-sans flex h-screen overflow-hidden text-slate-800 antialiased selection:bg-brand-200 selection:text-brand-900"
+  >
+    <!-- Recipiente Toasts -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Modais -->
+    <div
+      id="modal-confirmacao"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden flex items-center justify-center transition-opacity opacity-0 duration-300"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4 transform scale-95 transition-transform duration-300"
+        id="modal-confirmacao-content"
+      >
+        <div class="flex items-center gap-4 mb-4">
+          <div class="bg-red-50 text-red-600 p-3.5 rounded-full flex-shrink-0">
+            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          </div>
+          <div>
+            <h3 id="modal-titulo" class="text-lg font-bold text-slate-800">
+              Confirmar Ação
+            </h3>
+            <p id="modal-mensagem" class="text-sm text-slate-500 mt-1">
+              Tem a certeza de que deseja continuar?
+            </p>
+          </div>
+        </div>
+        <div class="flex gap-3 justify-end mt-8">
+          <button
+            onclick="fecharModalConfirmacao()"
+            class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onclick="confirmarModalConfirmacao()"
+            id="btn-modal-confirmar"
+            class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md shadow-red-500/20"
+          >
+            Excluir Registro
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      id="modal-prompt"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60] hidden flex items-center justify-center transition-opacity opacity-0 duration-300"
+    >
+      <div
+        class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 mx-4 transform scale-95 transition-transform duration-300"
+        id="modal-prompt-content"
+      >
+        <div class="flex items-center gap-4 mb-6">
+          <div
+            class="bg-brand-50 text-brand-600 p-3.5 rounded-full flex-shrink-0"
+          >
+            <i class="fa-solid fa-user-plus text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-800">Novo Encarregado</h3>
+            <p class="text-sm text-slate-500 mt-1">
+              Cadastre um novo responsável no sistema.
+            </p>
+          </div>
+        </div>
+        <div>
+          <input
+            type="text"
+            id="input-modal-prompt"
+            placeholder="Digite o nome completo..."
+            class="w-full rounded-xl border border-slate-200 px-4 py-3.5 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 font-medium bg-slate-50/50"
+          />
+        </div>
+        <div class="flex gap-3 justify-end mt-8">
+          <button
+            onclick="fecharModalPrompt()"
+            class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button
+            onclick="confirmarModalPrompt()"
+            class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-md shadow-brand-500/20"
+          >
+            Adicionar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overlay Mobile -->
+    <div
+      id="sidebar-overlay"
+      class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity"
+      onclick="toggleSidebar()"
+    ></div>
+
+    <!-- Espaçador Desktop -->
+    <div class="hidden lg:block w-20 flex-shrink-0 z-0"></div>
+
+    <!-- Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 z-50 bg-slate-900 text-slate-300 flex flex-col shadow-2xl transform -translate-x-full lg:translate-x-0 transition-all duration-300 ease-in-out group overflow-hidden w-72 lg:w-20 lg:hover:w-72"
+    >
+      <div
+        class="h-24 flex items-center gap-4 px-5 border-b border-slate-800/50 relative overflow-hidden flex-shrink-0"
+      >
+        <div
+          class="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl transform translate-x-10 -translate-y-10 pointer-events-none"
+        ></div>
+        <div
+          class="bg-brand-600 p-2.5 rounded-xl text-white shadow-lg shadow-brand-600/30 z-10 flex-shrink-0 flex items-center justify-center w-11 h-11"
+        >
+          <i class="fa-solid fa-layer-group text-xl"></i>
+        </div>
+        <div
+          class="z-10 transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 whitespace-nowrap flex-shrink-0"
+        >
+          <h2
+            class="text-xl font-extrabold text-white tracking-tight leading-tight"
+          >
+            DEMAP
+          </h2>
+          <p
+            class="text-[10px] text-brand-400 font-bold uppercase tracking-[0.2em]"
+          >
+            Enterprise
+          </p>
+        </div>
+        <button
+          onclick="toggleSidebar()"
+          class="lg:hidden absolute right-4 text-slate-400 hover:text-white transition-colors z-20 p-2"
+        >
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <nav class="flex-1 py-6 space-y-1.5 overflow-y-auto overflow-x-hidden">
+        <p
+          class="text-[10px] text-slate-500 mb-4 px-5 uppercase font-bold tracking-wider transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 whitespace-nowrap"
+        >
+          Menu Principal
+        </p>
+
+        <button
+          onclick="switchTab('dashboard')"
+          id="btn-dashboard"
+          class="w-full flex items-center gap-4 px-5 py-3.5 font-semibold transition-all text-left whitespace-nowrap bg-brand-600/15 text-brand-400 border-r-2 border-brand-500 group/btn"
+        >
+          <div class="w-11 flex justify-center flex-shrink-0">
+            <i
+              class="fa-solid fa-chart-pie text-lg transition-transform group-hover/btn:scale-110"
+            ></i>
+          </div>
+          <span
+            class="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+            >Painel Gerencial</span
+          >
+        </button>
+
+        <button
+          onclick="switchTab('lancamentos')"
+          id="btn-lancamentos"
+          class="w-full flex items-center gap-4 px-5 py-3.5 font-semibold transition-all text-left whitespace-nowrap hover:bg-slate-800 text-slate-400 border-r-2 border-transparent group/btn"
+        >
+          <div class="w-11 flex justify-center flex-shrink-0">
+            <i
+              class="fa-solid fa-clipboard-list text-lg transition-transform group-hover/btn:scale-110"
+            ></i>
+          </div>
+          <span
+            class="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+            >Lançamentos</span
+          >
+        </button>
+
+        <div class="mt-8 pt-6 border-t border-slate-800/50">
+          <p
+            class="text-[10px] text-slate-500 mb-4 px-5 uppercase font-bold tracking-wider transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 whitespace-nowrap"
+          >
+            Gestão de Dados
+          </p>
+
+          <label
+            class="w-full flex items-center gap-4 px-5 py-3 hover:bg-slate-800 text-slate-300 font-medium cursor-pointer transition-all text-left text-sm mb-1 whitespace-nowrap group/btn"
+            title="Importe seu arquivo Excel (.xlsx) da Base de Dados"
+          >
+            <div
+              class="w-11 flex justify-center flex-shrink-0 bg-emerald-500/10 p-2 rounded-xl group-hover/btn:bg-emerald-500/20 transition-colors"
+            >
+              <i class="fa-solid fa-database text-emerald-400 text-sm"></i>
+            </div>
+            <span
+              class="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex items-center gap-1"
+              >Carregar Base</span
+            >
+            <input
+              type="file"
+              id="input-excel-base"
+              accept=".xlsx, .xls"
+              class="hidden"
+            />
+          </label>
+
+          <label
+            class="w-full flex items-center gap-4 px-5 py-3 hover:bg-slate-800 text-slate-300 font-medium cursor-pointer transition-all text-left text-sm whitespace-nowrap group/btn"
+            title="Importe o seu histórico de lançamentos/saídas (CSV ou Excel)"
+          >
+            <div
+              class="w-11 flex justify-center flex-shrink-0 bg-blue-500/10 p-2 rounded-xl group-hover/btn:bg-blue-500/20 transition-colors"
+            >
+              <i class="fa-solid fa-file-import text-blue-400 text-sm"></i>
+            </div>
+            <span
+              class="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100"
+              >Importar Histórico</span
+            >
+            <input
+              type="file"
+              id="input-excel-historico"
+              accept=".xlsx, .xls, .csv"
+              class="hidden"
+            />
+          </label>
+
+          <div
+            class="px-5 mt-5 transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 whitespace-nowrap"
+          >
+            <div
+              id="status-base"
+              class="hidden items-center gap-2.5 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl w-full"
+            >
+              <div
+                class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse flex-shrink-0"
+              ></div>
+              <span
+                id="status-base-text"
+                class="text-xs text-emerald-400 font-semibold truncate"
+                >0 ativos</span
+              >
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <div
+        class="p-5 border-t border-slate-800/80 bg-slate-900 overflow-hidden whitespace-nowrap"
+      >
+        <div class="flex items-center gap-4">
+          <div class="w-11 flex justify-center flex-shrink-0">
+            <div
+              class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"
+            ></div>
+          </div>
+          <div
+            class="transition-opacity duration-300 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 flex flex-col"
+          >
+            <p class="text-xs font-bold text-slate-300">Servidor Online</p>
+            <p class="text-[10px] text-slate-500">Firebase Firestore</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main
+      class="app-shell flex-1 flex flex-col h-full overflow-hidden relative bg-transparent w-full z-0 min-w-0"
+    >
+      <!-- Header Responsivo & Glassmorphism -->
+      <header
+        class="bg-white/80 shadow-sm border-b border-slate-200/80 px-3 sm:px-8 py-3 sm:py-4 flex flex-wrap gap-3 justify-between items-center z-10 backdrop-blur-lg"
+      >
+        <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+          <button
+            type="button"
+            onclick="toggleSidebar()"
+            aria-label="Abrir menu lateral"
+            class="lg:hidden text-slate-500 hover:text-brand-600 focus:outline-none transition-colors p-1.5 rounded-lg hover:bg-brand-50"
+          >
+            <i class="fa-solid fa-bars text-xl"></i>
+          </button>
+          <div>
+            <h1
+              id="page-title"
+              class="text-lg sm:text-2xl font-black text-slate-800 tracking-tight truncate max-w-[18rem] sm:max-w-none"
+            >
+              Painel Gerencial
+            </h1>
+            <p
+              id="page-greeting"
+              class="text-xs text-slate-500 font-medium hidden sm:block"
+            >
+              Carregando...
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 sm:gap-4 no-select flex-shrink-0">
+          <div class="text-right hidden sm:block no-select min-w-0">
+            <p class="text-sm font-bold text-slate-800 leading-tight">
+              Jefferson
+            </p>
+            <p
+              class="text-xs text-brand-600 font-bold bg-brand-50 inline-block px-2 py-0.5 rounded-md mt-0.5"
+            >
+              Administrador
+            </p>
+          </div>
+          <div
+            aria-hidden="true"
+            class="bg-gradient-to-br from-brand-500 to-indigo-600 text-white shadow-lg shadow-brand-500/30 rounded-xl h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center font-black text-lg ring-2 ring-white cursor-default hover:scale-105 transition-transform flex-shrink-0 no-select"
+          >
+            J
+          </div>
+        </div>
+      </header>
+
+      <!-- Container de Conteúdo -->
+      <div
+        class="content-scroll flex-1 overflow-y-auto p-3 sm:p-8 custom-scrollbar relative min-w-0"
+      >
+        <!-- ABA 1: DASHBOARD -->
+        <div
+          id="tab-dashboard"
+          class="tab-content active space-y-6 max-w-7xl mx-auto"
+        >
+          <div
+            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+          >
+            <div
+              class="panel-card glass-card rounded-3xl p-5 sm:p-6 flex items-center gap-5 group"
+            >
+              <div
+                class="bg-brand-50 p-4 rounded-2xl text-brand-600 shadow-inner flex-shrink-0 group-hover:bg-brand-500 group-hover:text-white transition-colors duration-300"
+              >
+                <i class="fa-solid fa-boxes-packing text-2xl"></i>
+              </div>
+              <div class="min-w-0">
+                <p
+                  class="text-xs sm:text-sm text-slate-500 font-bold mb-1 truncate uppercase tracking-wider"
+                >
+                  Total Saídas
+                </p>
+                <h3
+                  id="card-total-saidas"
+                  class="text-3xl font-black text-slate-800 tracking-tight truncate"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+            <div
+              class="panel-card glass-card rounded-3xl p-5 sm:p-6 flex items-center gap-5 group"
+            >
+              <div
+                class="bg-indigo-50 p-4 rounded-2xl text-indigo-600 shadow-inner flex-shrink-0 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300"
+              >
+                <i class="fa-solid fa-users-gear text-2xl"></i>
+              </div>
+              <div class="min-w-0">
+                <p
+                  class="text-xs sm:text-sm text-slate-500 font-bold mb-1 truncate uppercase tracking-wider"
+                >
+                  Encarregados
+                </p>
+                <h3
+                  id="card-total-encarregados"
+                  class="text-3xl font-black text-slate-800 tracking-tight truncate"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+            <div
+              class="panel-card glass-card rounded-3xl p-5 sm:p-6 flex items-center gap-5 group sm:col-span-2 lg:col-span-1"
+            >
+              <div
+                class="bg-emerald-50 p-4 rounded-2xl text-emerald-600 shadow-inner flex-shrink-0 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300"
+              >
+                <i class="fa-solid fa-layer-group text-2xl"></i>
+              </div>
+              <div class="min-w-0">
+                <p
+                  class="text-xs sm:text-sm text-slate-500 font-bold mb-1 truncate uppercase tracking-wider"
+                >
+                  Itens Distintos
+                </p>
+                <h3
+                  id="card-total-materiais"
+                  class="text-3xl font-black text-slate-800 tracking-tight truncate"
+                >
+                  0
+                </h3>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div
+              class="glass-card rounded-3xl p-5 sm:p-6 flex flex-col relative overflow-hidden"
+            >
+              <div class="flex justify-between items-center mb-6 z-10">
+                <h3
+                  class="text-base sm:text-lg font-extrabold text-slate-800 truncate pr-2"
+                >
+                  Volume por Encarregado
+                </h3>
+                <span
+                  class="text-[10px] sm:text-xs font-bold bg-slate-100 text-slate-600 py-1.5 px-3 rounded-lg whitespace-nowrap border border-slate-200"
+                  >Top 10</span
+                >
+              </div>
+              <div
+                class="relative flex-1 min-h-[250px] sm:min-h-[300px] flex items-center justify-center"
+              >
+                <canvas
+                  id="chartEncarregados"
+                  class="absolute inset-0 z-10"
+                ></canvas>
+                <div
+                  id="empty-chart-enc"
+                  class="text-center z-0 text-slate-400"
+                >
+                  <div class="bg-slate-50 p-4 rounded-full inline-block mb-3">
+                    <i class="fa-solid fa-chart-column text-3xl opacity-40"></i>
+                  </div>
+                  <p class="text-sm font-bold">Aguardando dados</p>
+                </div>
+              </div>
+            </div>
+            <div
+              class="glass-card rounded-3xl p-5 sm:p-6 flex flex-col relative overflow-hidden"
+            >
+              <div class="flex justify-between items-center mb-6 z-10">
+                <h3
+                  class="text-base sm:text-lg font-extrabold text-slate-800 truncate pr-2"
+                >
+                  Materiais Mais Solicitados
+                </h3>
+                <span
+                  class="text-[10px] sm:text-xs font-bold bg-orange-50 text-orange-600 py-1.5 px-3 rounded-lg whitespace-nowrap border border-orange-100"
+                  >Top 5</span
+                >
+              </div>
+              <div
+                class="relative flex-1 min-h-[250px] sm:min-h-[300px] flex items-center justify-center"
+              >
+                <canvas
+                  id="chartMateriais"
+                  class="absolute inset-0 z-10"
+                ></canvas>
+                <div
+                  id="empty-chart-mat"
+                  class="text-center z-0 text-slate-400"
+                >
+                  <div class="bg-slate-50 p-4 rounded-full inline-block mb-3">
+                    <i class="fa-solid fa-chart-bar text-3xl opacity-40"></i>
+                  </div>
+                  <p class="text-sm font-bold">Aguardando dados</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ABA 2: LANÇAMENTOS -->
+        <div
+          id="tab-lancamentos"
+          class="tab-content space-y-6 max-w-7xl mx-auto"
+        >
+          <div class="glass-card rounded-3xl overflow-hidden relative">
+            <div
+              class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-brand-500 via-indigo-500 to-purple-500"
+            ></div>
+            <div
+              class="bg-slate-50/50 px-5 sm:px-8 py-5 border-b border-slate-100 flex justify-between items-center"
+            >
+              <h3
+                class="text-lg font-extrabold text-slate-800 flex items-center gap-3"
+              >
+                <div
+                  class="bg-brand-100 text-brand-600 p-2 rounded-xl shadow-inner"
+                >
+                  <i class="fa-solid fa-plus text-sm"></i>
+                </div>
+                Registrar Saída
+              </h3>
+            </div>
+            <div class="p-4 sm:p-8">
+              <form id="form-lancamento" class="space-y-5">
+                <div class="ui-grid grid grid-cols-1 md:grid-cols-6 gap-5">
+                  <div class="col-span-1 md:col-span-1">
+                    <label
+                      class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
+                      >Data</label
+                    >
+                    <input
+                      type="date"
+                      id="input-data"
+                      required
+                      aria-label="Data da saída"
+                      class="field-input ui-field w-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 bg-slate-50/50 hover:bg-white text-sm font-medium"
+                    />
+                  </div>
+                  <div class="col-span-1 md:col-span-1">
+                    <label
+                      class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
+                      >Cód. Almox.</label
+                    >
+                    <input
+                      type="text"
+                      id="input-codigo"
+                      required
+                      placeholder="Ex: 14407"
+                      aria-label="Código do almoxarifado"
+                      class="field-input ui-field w-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 font-bold bg-slate-50/50 hover:bg-white text-sm placeholder:font-normal placeholder:text-slate-400"
+                    />
+                  </div>
+                  <div class="col-span-1 md:col-span-4 relative group">
+                    <label
+                      class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex justify-between items-center"
+                    >
+                      <span>Material Encontrado</span>
+                      <span
+                        id="badge-encontrado"
+                        class="text-[10px] font-black text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-md opacity-0 transition-opacity"
+                        ><i class="fa-solid fa-check mr-1"></i>BASE OK</span
+                      >
+                    </label>
+                    <input
+                      type="text"
+                      id="input-material"
+                      required
+                      readonly
+                      placeholder="Insira o código para buscar..."
+                      aria-label="Material encontrado"
+                      class="field-input ui-field w-full border border-slate-200 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div class="ui-grid grid grid-cols-1 md:grid-cols-6 gap-5">
+                  <div class="col-span-1 md:col-span-1">
+                    <label
+                      class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
+                      >Quantidade</label
+                    >
+                    <input
+                      type="number"
+                      step="0.01"
+                      id="input-quantidade"
+                      required
+                      min="0.01"
+                      placeholder="0.00"
+                      aria-label="Quantidade da saída"
+                      class="field-input ui-field w-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-brand-700 font-black bg-slate-50/50 hover:bg-white text-sm placeholder:font-normal placeholder:text-slate-400 text-right"
+                    />
+                  </div>
+                  <div class="col-span-1 md:col-span-4">
+                    <label
+                      class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
+                      >Responsável (Encarregado)</label
+                    >
+                    <div class="flex flex-col sm:flex-row items-stretch gap-2">
+                      <select
+                        id="select-encarregado"
+                        required
+                        aria-label="Selecionar responsável"
+                        class="field-input ui-field flex-1 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 bg-slate-50/50 hover:bg-white cursor-pointer text-sm font-semibold"
+                      ></select>
+                      <button
+                        type="button"
+                        onclick="abrirModalPrompt()"
+                        aria-label="Cadastrar novo responsável"
+                        class="btn-base btn-secondary h-[44px] w-full sm:w-auto"
+                        title="Cadastrar Novo"
+                      >
+                        <i class="fa-solid fa-plus"></i>
+                        <span class="hidden sm:inline">Novo</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-span-1 md:col-span-1 flex items-end">
+                    <button
+                      type="submit"
+                      id="btn-submit"
+                      aria-label="Gravar saída"
+                      class="btn-base btn-primary w-full text-sm mt-2 md:mt-0"
+                    >
+                      <i class="fa-solid fa-check"></i> Gravar
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Histórico em Grid Responsivo -->
+          <div
+            class="glass-card rounded-3xl overflow-hidden flex flex-col relative"
+          >
+            <div
+              class="bg-white px-4 sm:px-8 py-4 sm:py-5 border-b border-slate-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 sm:gap-5"
+            >
+              <h3
+                class="text-lg font-extrabold text-slate-800 flex items-center gap-3 whitespace-nowrap"
+              >
+                <div class="bg-slate-100 text-slate-600 p-2 rounded-xl">
+                  <i class="fa-solid fa-table-cells-large text-sm"></i>
+                </div>
+                Histórico de Lançamentos
+              </h3>
+
+              <div
+                class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto flex-wrap justify-end max-w-full"
+              >
+                <div
+                  class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 shadow-sm w-full sm:w-auto min-w-0 transition-colors focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
+                >
+                  <i
+                    class="fa-solid fa-arrow-down-a-z text-slate-400 text-sm mr-2"
+                  ></i>
+                  <select
+                    id="select-ordenacao"
+                    class="block w-full sm:w-36 border-none bg-transparent text-slate-700 font-bold focus:outline-none focus:ring-0 text-xs sm:text-sm cursor-pointer outline-none appearance-none"
+                  >
+                    <option value="data_desc">Mais Recentes</option>
+                    <option value="data_asc">Mais Antigos</option>
+                    <option value="material_asc">Material (A-Z)</option>
+                    <option value="quantidade_desc">Maior Qtd</option>
+                    <option value="encarregado_asc">Encarregado (A-Z)</option>
+                  </select>
+                </div>
+
+                <div
+                  class="flex flex-wrap sm:flex-nowrap items-center bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-sm w-full sm:w-auto overflow-hidden min-w-0"
+                >
+                  <input
+                    type="date"
+                    id="input-data-inicio"
+                    class="block w-full sm:w-32 md:w-36 px-2 py-1.5 border-none rounded-lg bg-transparent text-slate-700 font-semibold focus:outline-none text-xs sm:text-sm cursor-pointer"
+                  />
+                  <span class="text-slate-300 font-medium px-1 sm:px-2"
+                    ><i class="fa-solid fa-arrow-right-long text-xs"></i
+                  ></span>
+                  <input
+                    type="date"
+                    id="input-data-fim"
+                    class="block w-full sm:w-32 md:w-36 px-2 py-1.5 border-none rounded-lg bg-transparent text-slate-700 font-semibold focus:outline-none text-xs sm:text-sm cursor-pointer"
+                  />
+                </div>
+
+                <div
+                  class="flex flex-col sm:flex-row items-stretch gap-3 w-full sm:w-auto"
+                >
+                  <div class="relative w-full sm:w-56 md:w-64 min-w-0">
+                    <div
+                      class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                    >
+                      <i
+                        class="fa-solid fa-magnifying-glass text-slate-400 text-sm"
+                      ></i>
+                    </div>
+                    <input
+                      type="text"
+                      id="input-search"
+                      placeholder="Pesquisar..."
+                      aria-label="Pesquisar lançamentos"
+                      class="field-input block w-full pl-10 pr-4 py-2.5 border border-slate-200 bg-slate-50 rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 text-sm transition-all shadow-sm placeholder-slate-400"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onclick="exportarExcel()"
+                    aria-label="Exportar lançamentos para Excel"
+                    class="btn-base btn-success"
+                    title="Exportar para Excel"
+                  >
+                    <i class="fa-solid fa-file-excel"></i>
+                    <span class="hidden sm:inline">Exportar</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="grid-lancamentos"
+              class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 p-4 sm:p-8 bg-slate-50/50 min-h-[400px]"
+            >
+              <!-- Skeleton Loader -->
+              <div
+                class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col gap-5 animate-pulse-fast"
+              >
+                <div class="flex justify-between gap-4">
+                  <div class="flex-1 space-y-3">
+                    <div class="h-4 bg-slate-200 rounded w-3/4"></div>
+                    <div class="h-4 bg-slate-200 rounded w-1/2"></div>
+                  </div>
+                  <div class="h-14 w-14 bg-slate-200 rounded-2xl"></div>
+                </div>
+                <div class="border-t border-slate-100"></div>
+                <div class="space-y-4">
+                  <div class="flex justify-between">
+                    <div class="h-3 bg-slate-200 rounded w-20"></div>
+                    <div class="h-3 bg-slate-200 rounded w-24"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div
+              id="tabela-footer"
+              class="bg-white border-t border-slate-100 px-4 sm:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0"
+            >
+              <span
+                id="tabela-info"
+                class="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest"
+                >Calculando...</span
+              >
+              <div class="flex items-center gap-2">
+                <button
+                  id="btn-prev-page"
+                  type="button"
+                  onclick="mudarPagina(-1)"
+                  aria-label="Página anterior"
+                  class="btn-base px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
+                >
+                  <i class="fa-solid fa-chevron-left"></i>
+                  <span class="hidden sm:inline">Anterior</span>
+                </button>
+                <span
+                  id="tabela-paginacao-info"
+                  class="text-sm text-brand-700 font-black px-4 bg-brand-50 py-1.5 rounded-xl border border-brand-100"
+                  >1 / 1</span
+                >
+                <button
+                  id="btn-next-page"
+                  type="button"
+                  onclick="mudarPagina(1)"
+                  aria-label="Próxima página"
+                  class="btn-base px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
+                >
+                  <span class="hidden sm:inline">Próxima</span>
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+      import {
+        getAuth,
+        signInAnonymously,
+        signInWithCustomToken,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+        onSnapshot,
+        deleteDoc,
+        doc,
+        serverTimestamp,
+        writeBatch,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+      // ==========================================
+      // 0. ESTADO GLOBAL E UI UTILS
+      // ==========================================
+      let chartEnc = null;
+      let chartMat = null;
+      let acaoPendenteModal = null;
+
+      // Saudação Dinâmica
+      const setGreeting = () => {
+        const hour = new Date().getHours();
+        const el = document.getElementById("page-greeting");
+        if (hour < 12) el.textContent = "Bom dia, pronto para gerir o estoque?";
+        else if (hour < 18)
+          el.textContent = "Boa tarde, acompanhe os seus dados.";
+        else el.textContent = "Boa noite, excelente trabalho hoje.";
+      };
+      setGreeting();
+
+      window.toggleSidebar = function () {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebar-overlay");
+        sidebar.classList.toggle("-translate-x-full");
+        overlay.classList.toggle("hidden");
+      };
+
+      function closeSidebarOnMobile() {
+        if (window.innerWidth < 1024) {
+          document.getElementById("sidebar").classList.add("-translate-x-full");
+          document.getElementById("sidebar-overlay").classList.add("hidden");
+        }
+      }
+
+      // ==========================================
+      // 1. NOTIFICAÇÕES & MODAIS
+      // ==========================================
+      window.showToast = function (message, type = "success") {
+        const container = document.getElementById("toast-container");
+        const toast = document.createElement("div");
+
+        const icons = {
+          success:
+            '<div class="bg-emerald-100 p-2 rounded-full"><i class="fa-solid fa-check text-emerald-600"></i></div>',
+          error:
+            '<div class="bg-red-100 p-2 rounded-full"><i class="fa-solid fa-xmark text-red-600"></i></div>',
+          info: '<div class="bg-brand-100 p-2 rounded-full"><i class="fa-solid fa-info text-brand-600"></i></div>',
+        };
+
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+                ${icons[type] || icons.info} 
+                <span class="font-bold text-sm tracking-wide text-slate-700">${message}</span>
+                <div class="toast-progress"></div>
+            `;
+        container.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.transform = "translateY(20px)";
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 400);
+        }, 3000);
+      };
+
+      window.abrirModalConfirmacao = (titulo, mensagem, onConfirm) => {
+        document.getElementById("modal-titulo").innerText = titulo;
+        document.getElementById("modal-mensagem").innerText = mensagem;
+        acaoPendenteModal = onConfirm;
+        const modal = document.getElementById("modal-confirmacao");
+        const content = document.getElementById("modal-confirmacao-content");
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          content.classList.remove("scale-95");
+        }, 10);
+      };
+
+      window.fecharModalConfirmacao = () => {
+        const modal = document.getElementById("modal-confirmacao");
+        const content = document.getElementById("modal-confirmacao-content");
+        modal.classList.add("opacity-0");
+        content.classList.add("scale-95");
+        setTimeout(() => modal.classList.add("hidden"), 300);
+        acaoPendenteModal = null;
+      };
+
+      window.confirmarModalConfirmacao = () => {
+        if (acaoPendenteModal) acaoPendenteModal();
+        fecharModalConfirmacao();
+      };
+
+      window.abrirModalPrompt = () => {
+        const modal = document.getElementById("modal-prompt");
+        const content = document.getElementById("modal-prompt-content");
+        const input = document.getElementById("input-modal-prompt");
+        input.value = "";
+        modal.classList.remove("hidden");
+        setTimeout(() => {
+          modal.classList.remove("opacity-0");
+          content.classList.remove("scale-95");
+          input.focus();
+        }, 10);
+      };
+
+      window.fecharModalPrompt = () => {
+        const modal = document.getElementById("modal-prompt");
+        const content = document.getElementById("modal-prompt-content");
+        modal.classList.add("opacity-0");
+        content.classList.add("scale-95");
+        setTimeout(() => modal.classList.add("hidden"), 300);
+      };
+
+      window.confirmarModalPrompt = () => {
+        const input = document.getElementById("input-modal-prompt");
+        const novoNome = input.value.trim();
+        if (novoNome) {
+          if (!encarregados.includes(novoNome)) {
+            encarregados.push(novoNome);
+            localStorage.setItem(
+              "demap_encarregados",
+              JSON.stringify(encarregados),
+            );
+            renderizarSelectEncarregados();
+            document.getElementById("select-encarregado").value = novoNome;
+            showToast(`Encarregado "${novoNome}" adicionado!`, "success");
+            fecharModalPrompt();
+          } else {
+            showToast("Este encarregado já existe.", "error");
+          }
+        } else {
+          input.focus();
+        }
+      };
+
+      // ==========================================
+      // 2. DADOS ESTÁTICOS
+      // ==========================================
+      let encarregados = [
+        "Agnaldo",
+        "Arnaldo",
+        "Charles Vasques",
+        "Ednaldo Freitas",
+        "Erivelton",
+        "Francisco Antônio",
+        "Francisco Gustavo",
+        "Jaíro Verício",
+        "José Valdene",
+        "José Willian",
+        "Ricardo Verício",
+      ];
+      const savedEncarregados = localStorage.getItem("demap_encarregados");
+      if (savedEncarregados) encarregados = JSON.parse(savedEncarregados);
+
+      function renderizarSelectEncarregados() {
+        const select = document.getElementById("select-encarregado");
+        const valorAtual = select.value;
+        select.innerHTML =
+          '<option value="">Selecione o Responsável...</option>';
+        [...encarregados]
+          .sort()
+          .forEach((nome) => select.add(new Option(nome, nome)));
+        if (valorAtual && encarregados.includes(valorAtual))
+          select.value = valorAtual;
+      }
+      renderizarSelectEncarregados();
+
+      let baseDados = {
+        14407: "LAMINADO DE FREIJÓ DE (200 MM A 400 MM)",
+        20932: "COMPENSADO VIROLA 2.750mm X 1.600mm X 4mm",
+        15934: "TUBO INDUSTRIAL TIPO METALON DE 25 mm X 25 mm",
+      };
+      const savedBase = localStorage.getItem("demap_base_dados");
+      if (savedBase) {
+        baseDados = JSON.parse(savedBase);
+        atualizarUIBaseDados(Object.keys(baseDados).length);
+      }
+
+      function atualizarUIBaseDados(count) {
+        const statusBase = document.getElementById("status-base");
+        if (statusBase) {
+          statusBase.classList.remove("hidden");
+          statusBase.classList.add("flex");
+          document.getElementById("status-base-text").textContent =
+            count.toLocaleString("pt-BR") + " itens integrados";
+        }
+      }
+
+      document
+        .getElementById("input-excel-base")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          showToast("Sincronizando Base...", "info");
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            try {
+              const data = new Uint8Array(event.target.result);
+              const workbook = XLSX.read(data, { type: "array" });
+              const rows = XLSX.utils.sheet_to_json(
+                workbook.Sheets[workbook.SheetNames[0]],
+                { header: 1 },
+              );
+              let newBase = {};
+              for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (row && row.length >= 4) {
+                  let cod = String(row[1] || "")
+                    .replace(/(^"|"$)/g, "")
+                    .trim();
+                  let nome = String(row[3] || "")
+                    .replace(/(^"|"$)/g, "")
+                    .trim();
+                  if (
+                    cod &&
+                    nome &&
+                    cod !== "undefined" &&
+                    nome !== "undefined"
+                  )
+                    newBase[cod] = nome;
+                }
+              }
+              if (Object.keys(newBase).length > 0) {
+                baseDados = newBase;
+                localStorage.setItem(
+                  "demap_base_dados",
+                  JSON.stringify(baseDados),
+                );
+                atualizarUIBaseDados(Object.keys(baseDados).length);
+                showToast(
+                  `Base atualizada com ${Object.keys(baseDados).length} itens.`,
+                  "success",
+                );
+              } else {
+                showToast("Planilha inválida.", "error");
+              }
+            } catch (error) {
+              showToast("Erro ao ler Excel.", "error");
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        });
+
+      document.getElementById("input-data").value = new Date()
+        .toISOString()
+        .split("T")[0];
+
+      const inputCodigo = document.getElementById("input-codigo");
+      const inputMaterial = document.getElementById("input-material");
+      const badgeEncontrado = document.getElementById("badge-encontrado");
+
+      inputCodigo.addEventListener("input", (e) => {
+        const cod = e.target.value.trim();
+        if (baseDados[cod]) {
+          inputMaterial.value = baseDados[cod];
+          inputMaterial.className =
+            "w-full rounded-xl border border-emerald-300 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold focus:outline-none shadow-inner transition-colors text-sm";
+          badgeEncontrado.classList.remove("opacity-0");
+        } else {
+          badgeEncontrado.classList.add("opacity-0");
+          inputMaterial.value = cod.length > 2 ? "Material não catalogado" : "";
+          inputMaterial.className =
+            cod.length > 2
+              ? "w-full rounded-xl border border-red-200 px-4 py-3 bg-red-50 text-red-600 font-bold focus:outline-none shadow-inner transition-colors text-sm"
+              : "w-full rounded-xl border border-slate-200 px-4 py-3 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium";
+        }
+      });
+
+      // ==========================================
+      // 3. FIREBASE CONFIG
+      // ==========================================
+      let app, auth, db, currentUser, lancamentosRef;
+      const appId =
+        typeof __app_id !== "undefined" ? __app_id : "demap-estoque-app";
+      let dadosAtuais = [];
+      let dadosFiltrados = [];
+      let ordenacaoAtual = { coluna: "data", crescente: false };
+      let paginaAtual = 1;
+      const itensPorPagina = 9;
+
+      try {
+        const firebaseConfig =
+          typeof __firebase_config !== "undefined"
+            ? JSON.parse(__firebase_config)
+            : {
+                apiKey: "AIzaSyB8hC3rX_UuMIkdSdcswsez4n_7ZiDhJ6k",
+                authDomain: "saida-demap.firebaseapp.com",
+                projectId: "saida-demap",
+                storageBucket: "saida-demap.firebasestorage.app",
+                messagingSenderId: "28837173501",
+                appId: "1:28837173501:web:2a1d090d06479c8681c694",
+              };
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        const initAuth = async () => {
+          if (
+            typeof __initial_auth_token !== "undefined" &&
+            __initial_auth_token
+          ) {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(auth);
+          }
+        };
+        initAuth();
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            currentUser = user;
+            lancamentosRef = collection(
+              db,
+              "artifacts",
+              appId,
+              "users",
+              user.uid,
+              "lancamentos",
+            );
+            iniciarEscutaDeDados();
+          }
+        });
+      } catch (error) {
+        showToast("Falha de conexão com Cloud.", "error");
+      }
+
+      document
+        .getElementById("input-excel-historico")
+        .addEventListener("change", async function (e) {
+          const file = e.target.files[0];
+          if (!file || !currentUser) return;
+          showToast("Processando histórico...", "info");
+          const reader = new FileReader();
+          reader.onload = async function (event) {
+            try {
+              const data = new Uint8Array(event.target.result);
+              const workbook = XLSX.read(data, { type: "array" });
+              const rows = XLSX.utils.sheet_to_json(
+                workbook.Sheets[workbook.SheetNames[0]],
+                { raw: false },
+              );
+              const batch = writeBatch(db);
+              let count = 0;
+              for (let row of rows) {
+                let dataLanc = row["Data"] || row["data"] || "";
+                let cod = String(
+                  row["Código Almox."] || row["Código"] || "",
+                ).trim();
+                let material = row["Material"] || row["material"] || "";
+                let qtd =
+                  parseFloat(row["Quantidade"] || row["quantidade"]) || 0;
+                let encarregado =
+                  row["Encarregado"] || row["encarregado"] || "";
+                let valStatus = String(
+                  row["Status"] || row["status"] || row["Baixa"] || "",
+                ).toLowerCase();
+                let baixaFormatada =
+                  valStatus === "1" ||
+                  valStatus === "sim" ||
+                  valStatus === "baixado"
+                    ? "Sim"
+                    : "Não";
+                if (cod && qtd > 0 && dataLanc) {
+                  batch.set(
+                    doc(
+                      collection(
+                        db,
+                        "artifacts",
+                        appId,
+                        "users",
+                        currentUser.uid,
+                        "lancamentos",
+                      ),
+                    ),
+                    {
+                      data: dataLanc,
+                      codigo: cod,
+                      material: material,
+                      quantidade: qtd,
+                      encarregado: encarregado,
+                      baixa: baixaFormatada,
+                      timestamp: serverTimestamp(),
+                    },
+                  );
+                  count++;
+                }
+              }
+              if (count > 0) {
+                await batch.commit();
+                showToast(`${count} registros importados!`, "success");
+                e.target.value = "";
+              } else {
+                showToast("Planilha vazia ou com erros.", "error");
+              }
+            } catch (error) {
+              showToast("Falha na importação.", "error");
+            }
+          };
+          reader.readAsArrayBuffer(file);
+        });
+
+      // ==========================================
+      // 4. CRUD LANÇAMENTOS (GRID Avançado)
+      // ==========================================
+      document
+        .getElementById("form-lancamento")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          if (!currentUser || !lancamentosRef) return;
+          const btn = document.getElementById("btn-submit");
+          const original = btn.innerHTML;
+          btn.innerHTML =
+            '<i class="fa-solid fa-spinner fa-spin"></i> Processando...';
+          btn.disabled = true;
+          const material = inputMaterial.value;
+          if (material.includes("Não catalogado") || material === "") {
+            showToast("Verifique o Código Almox.", "error");
+            btn.innerHTML = original;
+            btn.disabled = false;
+            return;
+          }
+          try {
+            await addDoc(lancamentosRef, {
+              data: document.getElementById("input-data").value,
+              codigo: document.getElementById("input-codigo").value,
+              material: material,
+              quantidade: parseFloat(
+                document.getElementById("input-quantidade").value,
+              ),
+              encarregado: document.getElementById("select-encarregado").value,
+              baixa: "Não",
+              timestamp: serverTimestamp(),
+            });
+            document.getElementById("input-codigo").value = "";
+            document.getElementById("input-material").value = "";
+            document.getElementById("input-quantidade").value = "";
+            inputMaterial.className =
+              "w-full rounded-xl border border-slate-200 px-4 py-3 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium";
+            badgeEncontrado.classList.add("opacity-0");
+            showToast("Saída registrada com sucesso!");
+          } catch (error) {
+            showToast("Erro no servidor.", "error");
+          } finally {
+            btn.innerHTML = original;
+            btn.disabled = false;
+          }
+        });
+
+      window.deletarLancamento = (docId) => {
+        if (!currentUser) return;
+        abrirModalConfirmacao(
+          "Excluir Registro",
+          "Atenção: Esta ação removerá a saída do banco de dados permanentemente.",
+          async () => {
+            try {
+              await deleteDoc(
+                doc(
+                  db,
+                  "artifacts",
+                  appId,
+                  "users",
+                  currentUser.uid,
+                  "lancamentos",
+                  docId,
+                ),
+              );
+              showToast("Registro apagado.", "success");
+            } catch (e) {
+              showToast("Erro na exclusão.", "error");
+            }
+          },
+        );
+      };
+
+      window.toggleBaixa = async (idOuIds, statusAtual) => {
+        if (!currentUser) return;
+        const novoStatus = statusAtual === "Sim" ? "Não" : "Sim";
+        try {
+          if (Array.isArray(idOuIds)) {
+            const batch = writeBatch(db);
+            idOuIds.forEach((id) =>
+              batch.update(
+                doc(
+                  db,
+                  "artifacts",
+                  appId,
+                  "users",
+                  currentUser.uid,
+                  "lancamentos",
+                  id,
+                ),
+                { baixa: novoStatus },
+              ),
+            );
+            await batch.commit();
+          } else {
+            await updateDoc(
+              doc(
+                db,
+                "artifacts",
+                appId,
+                "users",
+                currentUser.uid,
+                "lancamentos",
+                idOuIds,
+              ),
+              { baixa: novoStatus },
+            );
+          }
+          showToast(`Status alterado para "${novoStatus}".`, "success");
+        } catch (e) {
+          showToast("Erro ao sincronizar status.", "error");
+        }
+      };
+
+      function iniciarEscutaDeDados() {
+        onSnapshot(
+          lancamentosRef,
+          (snapshot) => {
+            dadosAtuais = [];
+            if (!snapshot.empty)
+              snapshot.forEach((doc) => {
+                dadosAtuais.push({ ...doc.data(), id: doc.id });
+              });
+            aplicarFiltroPesquisa();
+            atualizarDashboard();
+          },
+          (error) => showToast("Sincronização interrompida.", "error"),
+        );
+      }
+
+      const searchInput = document.getElementById("input-search");
+      const dataInicioInput = document.getElementById("input-data-inicio");
+      const dataFimInput = document.getElementById("input-data-fim");
+      const ordenacaoSelect = document.getElementById("select-ordenacao");
+
+      const onFiltroChange = () => {
+        paginaAtual = 1;
+        aplicarFiltroPesquisa();
+      };
+      searchInput.addEventListener("input", onFiltroChange);
+      dataInicioInput.addEventListener("change", onFiltroChange);
+      dataFimInput.addEventListener("change", onFiltroChange);
+      ordenacaoSelect.addEventListener("change", () => {
+        const val = ordenacaoSelect.value;
+        paginaAtual = 1;
+        if (val === "data_desc")
+          ordenacaoAtual = { coluna: "data", crescente: false };
+        else if (val === "data_asc")
+          ordenacaoAtual = { coluna: "data", crescente: true };
+        else if (val === "material_asc")
+          ordenacaoAtual = { coluna: "material", crescente: true };
+        else if (val === "quantidade_desc")
+          ordenacaoAtual = { coluna: "quantidade", crescente: false };
+        else if (val === "encarregado_asc")
+          ordenacaoAtual = { coluna: "encarregado", crescente: true };
+        aplicarOrdenacao();
+        renderizarGridLancamentos();
+      });
+
+      function aplicarFiltroPesquisa() {
+        const termo = searchInput.value.toLowerCase().trim();
+        const dataInicio = dataInicioInput.value;
+        const dataFim = dataFimInput.value;
+        let tempFiltrados = dadosAtuais.filter((item) => {
+          const matchTexto =
+            termo === "" ||
+            item.codigo.toLowerCase().includes(termo) ||
+            item.material.toLowerCase().includes(termo) ||
+            item.encarregado.toLowerCase().includes(termo);
+          let matchData = true;
+          if (dataInicio) matchData = matchData && item.data >= dataInicio;
+          if (dataFim) matchData = matchData && item.data <= dataFim;
+          return matchTexto && matchData;
+        });
+
+        // Somatório Diário Inteligente
+        const agrupados = {};
+        tempFiltrados.forEach((item) => {
+          const key = `${item.data}_${item.codigo}_${item.encarregado}_${item.baixa || "Não"}`;
+          if (!agrupados[key]) {
+            agrupados[key] = {
+              ...item,
+              quantidade: Number(item.quantidade),
+              ids: [item.id],
+              isGrouped: false,
+            };
+          } else {
+            agrupados[key].quantidade += Number(item.quantidade);
+            agrupados[key].ids.push(item.id);
+            agrupados[key].isGrouped = true;
+          }
+        });
+        dadosFiltrados = Object.values(agrupados);
+        aplicarOrdenacao();
+        renderizarGridLancamentos();
+      }
+
+      function aplicarOrdenacao() {
+        const { coluna, crescente } = ordenacaoAtual;
+        dadosFiltrados.sort((a, b) => {
+          let vA =
+            coluna === "quantidade"
+              ? Number(a[coluna]) || 0
+              : String(a[coluna] || "").toLowerCase();
+          let vB =
+            coluna === "quantidade"
+              ? Number(b[coluna]) || 0
+              : String(b[coluna] || "").toLowerCase();
+          if (vA < vB) return crescente ? -1 : 1;
+          if (vA > vB) return crescente ? 1 : -1;
+          return 0;
+        });
+      }
+
+      function renderizarGridLancamentos() {
+        const grid = document.getElementById("grid-lancamentos");
+        grid.innerHTML = "";
+        const total = dadosFiltrados.length;
+        const paginas = Math.ceil(total / itensPorPagina) || 1;
+
+        if (total === 0) {
+          grid.innerHTML = `<div class="col-span-1 md:col-span-2 xl:col-span-3 flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed">
+                    <div class="bg-slate-50 p-5 rounded-full mb-4 ring-8 ring-slate-50/50"><i class="fa-solid fa-folder-open text-4xl opacity-50"></i></div>
+                    <h4 class="font-extrabold text-lg text-slate-700">Nenhum registo encontrado</h4>
+                    <p class="text-sm mt-1">Altere os filtros de pesquisa ou adicione um novo lançamento.</p>
+                </div>`;
+          document.getElementById("tabela-info").textContent = "0 Registros";
+          document.getElementById("btn-prev-page").disabled = true;
+          document.getElementById("btn-next-page").disabled = true;
+          return;
+        }
+
+        if (paginaAtual > paginas) paginaAtual = paginas;
+        if (paginaAtual < 1) paginaAtual = 1;
+        const start = (paginaAtual - 1) * itensPorPagina;
+        const end = Math.min(start + itensPorPagina, total);
+
+        dadosFiltrados.slice(start, end).forEach((item) => {
+          let dataBR = item.data?.includes("-")
+            ? item.data.split("-").reverse().join("/")
+            : item.data;
+          const idArg = item.isGrouped
+            ? `[${item.ids.map((id) => `'${id}'`).join(",")}]`
+            : `'${item.id}'`;
+          const baixaAtual = item.baixa || "Não";
+          const borderColor =
+            baixaAtual === "Sim"
+              ? "border-t-emerald-500"
+              : "border-t-amber-500";
+
+          const btnBaixa =
+            baixaAtual === "Sim"
+              ? `<button onclick="toggleBaixa(${idArg}, 'Sim')" class="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="fa-solid fa-check-double"></i> Concluído</button>`
+              : `<button onclick="toggleBaixa(${idArg}, 'Não')" class="flex-1 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5"><i class="fa-regular fa-clock"></i> Pendente</button>`;
+
+          grid.innerHTML += `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-t-4 ${borderColor} p-6 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="bg-slate-100/80 px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-500 tracking-widest border border-slate-200">
+                                CÓD: ${item.codigo}
+                            </div>
+                            <div class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1">
+                                <i class="fa-regular fa-calendar"></i> ${dataBR}
+                            </div>
+                        </div>
+                        <h3 class="font-black text-slate-800 text-base leading-tight line-clamp-2 mb-4" title="${item.material}">${item.material}</h3>
+                        
+                        <div class="flex items-center gap-4 bg-slate-50/50 rounded-xl p-3 border border-slate-100 mb-5">
+                            <div class="bg-white p-2 rounded-lg shadow-sm"><i class="fa-solid fa-user-tie text-brand-500 text-lg"></i></div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Responsável</p>
+                                <p class="font-bold text-slate-700 text-sm truncate" title="${item.encarregado}">${item.encarregado}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase">Qtd</p>
+                                <p class="font-black text-brand-600 text-lg leading-none">${item.quantidade.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto flex gap-2 pt-2 border-t border-slate-100">
+                            ${btnBaixa}
+                            ${
+                              item.isGrouped
+                                ? `<div class="w-16 flex-shrink-0 py-2.5 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm"><i class="fa-solid fa-layer-group"></i> ${item.ids.length}x</div>`
+                                : `<button onclick="deletarLancamento('${item.id}')" class="w-16 flex-shrink-0 py-2.5 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-colors flex items-center justify-center shadow-sm"><i class="fa-solid fa-trash-can"></i></button>`
+                            }
+                        </div>
+                    </div>`;
+        });
+
+        document.getElementById("tabela-info").textContent =
+          `Pág. ${paginaAtual} de ${paginas} (${total} itens)`;
+        document.getElementById("tabela-paginacao-info").textContent =
+          `${paginaAtual} / ${paginas}`;
+        document.getElementById("btn-prev-page").disabled = paginaAtual === 1;
+        document.getElementById("btn-next-page").disabled =
+          paginaAtual === paginas;
+      }
+
+      window.mudarPagina = (dir) => {
+        paginaAtual += dir;
+        renderizarGridLancamentos();
+      };
+      window.exportarExcel = () => {
+        if (!dadosFiltrados.length)
+          return showToast("Sem dados para exportar.", "info");
+        const data = dadosFiltrados.map((i) => ({
+          Data: i.data?.includes("-")
+            ? i.data.split("-").reverse().join("/")
+            : i.data,
+          Código: i.codigo,
+          Material: i.material,
+          Qtd: Number(i.quantidade),
+          Encarregado: i.encarregado,
+          Baixa: i.baixa || "Não",
+        }));
+        const ws = XLSX.utils.json_to_sheet(data);
+        ws["!cols"] = [
+          { wch: 12 },
+          { wch: 15 },
+          { wch: 50 },
+          { wch: 10 },
+          { wch: 25 },
+          { wch: 10 },
+        ];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Lançamentos");
+        XLSX.writeFile(
+          wb,
+          `DEMAP_Lançamentos_${new Date().toISOString().split("T")[0]}.xlsx`,
+        );
+        showToast("Relatório descarregado com sucesso!", "success");
+      };
+
+      // ==========================================
+      // 5. GRÁFICOS & DASHBOARD
+      // ==========================================
+      function atualizarDashboard() {
+        let total = 0;
+        let encSet = new Set();
+        let matSet = new Set();
+        let volEnc = {};
+        let topMat = {};
+        dadosAtuais.forEach((i) => {
+          total += Number(i.quantidade);
+          encSet.add(i.encarregado);
+          matSet.add(i.codigo);
+          volEnc[i.encarregado] =
+            (volEnc[i.encarregado] || 0) + Number(i.quantidade);
+          let matDesc = i.material.substring(0, 30) + "...";
+          topMat[matDesc] = (topMat[matDesc] || 0) + Number(i.quantidade);
+        });
+        document.getElementById("card-total-saidas").textContent =
+          total.toLocaleString("pt-BR", { minimumFractionDigits: 1 });
+        document.getElementById("card-total-encarregados").textContent =
+          encSet.size;
+        document.getElementById("card-total-materiais").textContent =
+          matSet.size;
+
+        let aEnc = Object.keys(volEnc)
+          .map((k) => ({ nome: k, vol: volEnc[k] }))
+          .sort((a, b) => b.vol - a.vol)
+          .slice(0, 10);
+        let aMat = Object.keys(topMat)
+          .map((k) => ({ nome: k, vol: topMat[k] }))
+          .sort((a, b) => b.vol - a.vol)
+          .slice(0, 5);
+
+        document
+          .getElementById("empty-chart-enc")
+          .classList.toggle("hidden", aEnc.length > 0);
+        document
+          .getElementById("empty-chart-mat")
+          .classList.toggle("hidden", aMat.length > 0);
+        renderizarGraficos(aEnc, aMat);
+      }
+
+      function renderizarGraficos(dEnc, dMat) {
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        const ctxE = document
+          .getElementById("chartEncarregados")
+          .getContext("2d");
+        if (chartEnc) chartEnc.destroy();
+        const gradB = ctxE.createLinearGradient(0, 0, 0, 300);
+        gradB.addColorStop(0, "#3b82f6");
+        gradB.addColorStop(1, "#6366f1");
+        chartEnc = new Chart(ctxE, {
+          type: "bar",
+          data: {
+            labels: dEnc.map((d) => d.nome.split(" ")[0]),
+            datasets: [
+              {
+                data: dEnc.map((d) => d.vol),
+                backgroundColor: gradB,
+                borderRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { display: false } },
+              x: {
+                grid: { display: false },
+                ticks: { font: { weight: "bold" } },
+              },
+            },
+          },
+        });
+
+        const ctxM = document.getElementById("chartMateriais").getContext("2d");
+        if (chartMat) chartMat.destroy();
+        const gradO = ctxM.createLinearGradient(300, 0, 0, 0);
+        gradO.addColorStop(0, "#f97316");
+        gradO.addColorStop(1, "#fbbf24");
+        chartMat = new Chart(ctxM, {
+          type: "bar",
+          data: {
+            labels: dMat.map((d) => d.nome),
+            datasets: [
+              {
+                data: dMat.map((d) => d.vol),
+                backgroundColor: gradO,
+                borderRadius: 8,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { beginAtZero: true, grid: { display: false } },
+              y: {
+                grid: { display: false },
+                ticks: { font: { weight: "bold" } },
+              },
+            },
+          },
+        });
+      }
+
+      // ==========================================
+      // 6. NAVEGAÇÃO DE ABAS
+      // ==========================================
+      window.switchTab = function (tabId) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((el) => el.classList.remove("active"));
+        ["dashboard", "lancamentos"].forEach((id) => {
+          const btn = document.getElementById("btn-" + id);
+          btn.classList.remove(
+            "bg-brand-600/15",
+            "text-brand-400",
+            "border-brand-500",
+          );
+          btn.classList.add(
+            "hover:bg-slate-800",
+            "text-slate-400",
+            "border-transparent",
+          );
+        });
+        document.getElementById("tab-" + tabId).classList.add("active");
+        const activeBtn = document.getElementById("btn-" + tabId);
+        activeBtn.classList.remove(
+          "hover:bg-slate-800",
+          "text-slate-400",
+          "border-transparent",
+        );
+        activeBtn.classList.add(
+          "bg-brand-600/15",
+          "text-brand-400",
+          "border-brand-500",
+        );
+
+        const titulos = {
+          dashboard: "Painel Gerencial",
+          lancamentos: "Controle de Lançamentos",
+        };
+        document.getElementById("page-title").innerText = titulos[tabId];
+        closeSidebarOnMobile();
+      };
+    </script>
+  </body>
+</html>
