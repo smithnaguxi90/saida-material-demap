@@ -2309,7 +2309,7 @@
                 ).trim();
                 let material = row["Material"] || row["material"] || "";
                 let qtd =
-                  parseFloat(row["Quantidade"] || row["quantidade"]) || 0;
+                  parseFloat(row["Quantidade"] || row["quantidade"] || row["Qtd"] || row["qtd"]) || 0;
                 let encarregado =
                   row["Encarregado"] || row["encarregado"] || "";
                 let valStatus = String(
@@ -2736,7 +2736,7 @@
             : i.data,
           Código: i.codigo,
           Material: i.material,
-          Qtd: Number(i.quantidade),
+          Quantidade: Number(i.quantidade),
           Encarregado: i.encarregado,
           Baixa: i.baixa || "Não",
         }));
