@@ -1564,6 +1564,18 @@
                         </svg>
                         <span class="hidden sm:inline">Novo</span>
                       </button>
+                      <button
+                        type="button"
+                        onclick="removerEncarregadoSelecionado()"
+                        aria-label="Remover responsável selecionado"
+                        class="btn-base btn-secondary h-[44px] w-full sm:w-auto text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300"
+                        title="Remover Selecionado"
+                      >
+                        <svg class="w-4 h-4" aria-hidden="true">
+                          <use href="#icon-trash-can"></use>
+                        </svg>
+                        <span class="hidden sm:inline">Remover</span>
+                      </button>
                     </div>
                   </div>
                   <div class="col-span-1 md:col-span-1 flex items-end">
@@ -1981,10 +1993,6 @@
         if (novoNome) {
           if (!encarregados.includes(novoNome)) {
             encarregados.push(novoNome);
-            localStorage.setItem(
-              "demap_encarregados",
-              JSON.stringify(encarregados),
-            );
             renderizarSelectEncarregados();
             document.getElementById("select-encarregado").value = novoNome;
             showToast(`Encarregado "${novoNome}" adicionado!`, "success");
@@ -2007,24 +2015,34 @@
         }
       };
 
+      window.removerEncarregadoSelecionado = () => {
+        const select = document.getElementById("select-encarregado");
+        const encarregado = select.value;
+        if (!encarregado) {
+          showToast("Selecione um encarregado para remover.", "error");
+          return;
+        }
+
+        abrirModalConfirmacao(
+          "Excluir Encarregado",
+          `Tem certeza que deseja remover o encarregado "${encarregado}"?`,
+          async () => {
+            try {
+              if (db && appId) {
+                await deleteDoc(doc(db, "artifacts", appId, "encarregados", encarregado));
+                showToast(`Encarregado "${encarregado}" removido com sucesso.`, "success");
+              }
+            } catch (error) {
+              showToast("Erro ao remover encarregado.", "error");
+            }
+          }
+        );
+      };
+
       // ==========================================
       // 2. DADOS ESTÁTICOS
       // ==========================================
-      let encarregados = [
-        "Agnaldo",
-        "Arnaldo",
-        "Charles Vasques",
-        "Ednaldo Freitas",
-        "Erivelton",
-        "Francisco Antônio",
-        "Francisco Gustavo",
-        "Jaíro Verício",
-        "José Valdene",
-        "José Willian",
-        "Ricardo Verício",
-      ];
-      const savedEncarregados = localStorage.getItem("demap_encarregados");
-      if (savedEncarregados) encarregados = JSON.parse(savedEncarregados);
+      let encarregados = [];
 
       function renderizarSelectEncarregados() {
         const select = document.getElementById("select-encarregado");
@@ -2088,6 +2106,23 @@
             localStorage.setItem("demap_base_dados", JSON.stringify(baseDados));
             atualizarUIBaseDados(Object.keys(baseDados).length);
           }
+        } catch (e) {}
+      };
+
+      window.carregarEncarregadosDoFirestore = function () {
+        if (!db || !appId) return;
+        try {
+          onSnapshot(
+            collection(db, "artifacts", appId, "encarregados"),
+            (snapshot) => {
+              encarregados = [];
+              snapshot.forEach((doc) => {
+                encarregados.push(doc.data().nome || doc.id);
+              });
+              renderizarSelectEncarregados();
+            },
+            (error) => console.error("Erro ao carregar encarregados:", error)
+          );
         } catch (e) {}
       };
 
