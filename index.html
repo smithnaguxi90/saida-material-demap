@@ -911,16 +911,16 @@
           stroke-linecap="round"
         />
       </symbol>
-    <symbol id="icon-logout" viewBox="0 0 24 24">
-      <path
-        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.9"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      />
-    </symbol>
+      <symbol id="icon-logout" viewBox="0 0 24 24">
+        <path
+          d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.9"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
     </svg>
     <!-- Recipiente Toasts -->
     <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
@@ -1785,6 +1785,8 @@
         serverTimestamp,
         writeBatch,
         updateDoc,
+        getDocs,
+        setDoc,
       } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
       // ==========================================
@@ -1829,7 +1831,8 @@
         excel:
           '<path d="M7 3h10l4 4v14H7z" /><path d="M10 9h4" /><path d="M10 13h4" /><path d="M10 17h4" />',
         user: '<path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /><path d="M20 21a8 8 0 0 0-16 0" />',
-        logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />',
+        logout:
+          '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />',
       };
 
       function svgIcon(name, className = "w-4 h-4", extra = "") {
@@ -1877,8 +1880,10 @@
       document.addEventListener("click", (e) => {
         const dropdown = document.getElementById("user-dropdown");
         if (!dropdown) return;
-        const isClickInside = e.target.closest('#user-dropdown') || e.target.closest('button[onclick="toggleDropdown()"]');
-        if (!isClickInside && !dropdown.classList.contains('opacity-0')) {
+        const isClickInside =
+          e.target.closest("#user-dropdown") ||
+          e.target.closest('button[onclick="toggleDropdown()"]');
+        if (!isClickInside && !dropdown.classList.contains("opacity-0")) {
           window.toggleDropdown();
         }
       });
@@ -1970,7 +1975,7 @@
         setTimeout(() => modal.classList.add("hidden"), 300);
       };
 
-      window.confirmarModalPrompt = () => {
+      window.confirmarModalPrompt = async () => {
         const input = document.getElementById("input-modal-prompt");
         const novoNome = input.value.trim();
         if (novoNome) {
@@ -1984,6 +1989,16 @@
             document.getElementById("select-encarregado").value = novoNome;
             showToast(`Encarregado "${novoNome}" adicionado!`, "success");
             fecharModalPrompt();
+
+            // Salvar na nuvem (Firestore)
+            if (db && appId) {
+              try {
+                await setDoc(
+                  doc(db, "artifacts", appId, "encarregados", novoNome),
+                  { nome: novoNome },
+                );
+              } catch (e) {}
+            }
           } else {
             showToast("Este encarregado já existe.", "error");
           }
@@ -2059,6 +2074,23 @@
         }
       }
 
+      window.carregarBaseDoFirestore = async function () {
+        try {
+          const matSnapshot = await getDocs(
+            collection(db, "artifacts", appId, "materiais"),
+          );
+          if (!matSnapshot.empty) {
+            let newBase = {};
+            matSnapshot.forEach((doc) => {
+              newBase[doc.id] = doc.data().nome;
+            });
+            baseDados = newBase;
+            localStorage.setItem("demap_base_dados", JSON.stringify(baseDados));
+            atualizarUIBaseDados(Object.keys(baseDados).length);
+          }
+        } catch (e) {}
+      };
+
       document
         .getElementById("input-excel-base")
         .addEventListener("change", function (e) {
@@ -2100,10 +2132,31 @@
                   JSON.stringify(baseDados),
                 );
                 atualizarUIBaseDados(Object.keys(baseDados).length);
-                showToast(
-                  `Base atualizada com ${Object.keys(baseDados).length} itens.`,
-                  "success",
-                );
+                showToast("Sincronizando com a Nuvem...", "info");
+
+                // Fazendo upload em lotes (batch) de 500 em 500 para o Firebase
+                (async () => {
+                  try {
+                    const keys = Object.keys(baseDados);
+                    for (let i = 0; i < keys.length; i += 500) {
+                      const chunk = keys.slice(i, i + 500);
+                      const batch = writeBatch(db);
+                      chunk.forEach((cod) => {
+                        batch.set(
+                          doc(db, "artifacts", appId, "materiais", cod),
+                          { nome: baseDados[cod] },
+                        );
+                      });
+                      await batch.commit();
+                    }
+                    showToast(
+                      `Base salva na nuvem com ${keys.length} itens.`,
+                      "success",
+                    );
+                  } catch (e) {
+                    showToast("Erro ao sincronizar com a nuvem.", "error");
+                  }
+                })();
               } else {
                 showToast("Planilha inválida.", "error");
               }
@@ -2188,6 +2241,8 @@
               user.uid,
               "lancamentos",
             );
+            carregarBaseDoFirestore();
+            carregarEncarregadosDoFirestore();
             iniciarEscutaDeDados();
           }
         });
