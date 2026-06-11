@@ -2391,9 +2391,8 @@
               baixa: "Não",
               timestamp: serverTimestamp(),
             });
-            document.getElementById("input-codigo").value = "";
-            document.getElementById("input-material").value = "";
-            document.getElementById("input-quantidade").value = "";
+            document.getElementById("form-lancamento").reset();
+            document.getElementById("input-data").value = new Date().toISOString().split("T")[0];
             inputMaterial.className =
               "w-full rounded-xl border border-slate-200 px-4 py-3 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium";
             badgeEncontrado.classList.add("opacity-0");
