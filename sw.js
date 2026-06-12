@@ -1,4 +1,4 @@
-const CACHE_NAME = "demap-cache-v1";
+const CACHE_NAME = "demap-cache-v2"; // Mude este nome/número a cada nova versão
 
 // Arquivos que queremos salvar no dispositivo do usuário
 const ASSETS_TO_CACHE = [
@@ -17,6 +17,24 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)),
   );
+  self.skipWaiting(); // Força a ativação imediata do novo Service Worker
+});
+
+// Evento de Ativação: Limpa caches antigos
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cache) => {
+          if (cache !== CACHE_NAME) {
+            console.log("PWA: Limpando cache antigo", cache);
+            return caches.delete(cache);
+          }
+        }),
+      );
+    }),
+  );
+  self.clients.claim(); // Garante que o SW controle as abas imediatamente
 });
 
 // Evento de Interceptação: Responde com cache se a internet falhar/for lenta

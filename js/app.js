@@ -1270,7 +1270,7 @@ function renderizarGridLancamentos() {
                         <h3 class="font-black text-slate-800 text-base leading-tight line-clamp-2 mb-4" title="${materialSeguro}">${materialSeguro}</h3>
                         
                         <div class="flex items-center gap-3 sm:gap-4 bg-slate-50/50 rounded-xl p-3 border border-slate-100 mb-4">
-                            <div class="bg-white p-2 rounded-lg shadow-sm text-brand-500">${svgIcon("userTie", "w-5 h-5")}</div>
+                            <svg class="text-brand-500 text-sm mr-2" aria-hidden="true"><use href="#icon-users-gear"></use></svg>
                             <div class="flex-1 min-w-0">
                                 <p class="text-[10px] font-bold text-slate-400 uppercase">Responsável</p>
                                 <p class="font-bold text-slate-700 text-sm truncate" title="${encarregadoSeguro}">${encarregadoSeguro}</p>
@@ -1467,5 +1467,10 @@ if ("serviceWorker" in navigator) {
       .catch((err) =>
         console.log("PWA: Falha ao registrar Service Worker.", err),
       );
+
+    // Recarrega a página quando uma nova versão do PWA assume o controle
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      window.location.reload();
+    });
   });
 }
