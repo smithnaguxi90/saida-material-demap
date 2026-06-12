@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
     <title>Gestão de Materiais | COENG</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon.svg" />
+    <link rel="manifest" href="manifest.json" />
 
     <!-- Fonte Inter (Padrão Profissional) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,432 +17,7 @@
       rel="stylesheet"
     />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: { sans: ["Inter", "sans-serif"] },
-            animation: {
-              "fade-in": "fadeIn 0.3s ease-out",
-              "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-              "pulse-fast": "pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-              "toast-progress": "toastProgress 3s linear forwards",
-            },
-            keyframes: {
-              fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
-              slideUp: {
-                "0%": { opacity: "0", transform: "translateY(20px)" },
-                "100%": { opacity: "1", transform: "translateY(0)" },
-              },
-              toastProgress: {
-                "0%": { width: "100%" },
-                "100%": { width: "0%" },
-              },
-            },
-            colors: {
-              brand: {
-                50: "#eff6ff",
-                100: "#dbeafe",
-                500: "#3b82f6",
-                600: "#2563eb",
-                700: "#1d4ed8",
-                900: "#1e3a8a",
-              },
-            },
-          },
-        },
-      };
-    </script>
-
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS para Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
-
-      .tab-content {
-        display: none;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      .tab-content.active {
-        display: block;
-        opacity: 1;
-        animation: fadeIn 0.4s ease-out;
-      }
-
-      #toast-container {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-      }
-
-      .ui-field {
-        min-height: 46px;
-        border-radius: 14px;
-        padding: 0.625rem 0.875rem;
-        box-sizing: border-box;
-      }
-
-      .ui-btn {
-        min-height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.625rem 0.875rem;
-        border-radius: 14px;
-        font-weight: 700;
-        white-space: nowrap;
-        box-sizing: border-box;
-      }
-
-      .ui-grid {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 1.25rem;
-        align-items: stretch;
-      }
-
-      .ui-grid > * {
-        min-height: 44px;
-      }
-
-      html {
-        overflow-x: hidden;
-        min-height: 100%;
-        scroll-behavior: smooth;
-      }
-
-      body {
-        overflow-x: hidden;
-        min-height: 100%;
-      }
-
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-      }
-
-      body {
-        min-height: 100dvh;
-        background:
-          radial-gradient(
-            circle at top,
-            rgba(191, 219, 254, 0.25),
-            transparent 25%
-          ),
-          linear-gradient(135deg, #f8fbff 0%, #f5f7ff 45%, #f8fafc 100%);
-        color: #0f172a;
-        cursor: default;
-      }
-
-      body,
-      main,
-      aside,
-      header,
-      section,
-      article,
-      div,
-      span,
-      p,
-      h1,
-      h2,
-      h3,
-      label {
-        cursor: default;
-      }
-
-      button,
-      a,
-      input,
-      select,
-      textarea,
-      [role="button"],
-      [onclick],
-      .interactive,
-      .tab-btn,
-      .sidebar-item {
-        cursor: pointer;
-      }
-
-      input,
-      textarea,
-      select {
-        cursor: text;
-      }
-
-      :not(input):not(textarea):not(select) {
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-      }
-
-      .glass-card,
-      .panel-card {
-        min-width: 0;
-        position: relative;
-        overflow: hidden;
-      }
-
-      .glass-card::after,
-      .panel-card::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: linear-gradient(
-          135deg,
-          rgba(148, 163, 184, 0.06),
-          transparent 35%
-        );
-        pointer-events: none;
-      }
-
-      svg[class*="text-"] {
-        display: inline-block;
-        width: 1em;
-        height: 1em;
-        font-size: 1.15em;
-        vertical-align: -0.125em;
-        flex-shrink: 0;
-      }
-
-      .glass-card {
-        background: rgba(255, 255, 255, 0.92);
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        box-shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.28);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-        transition:
-          transform 180ms ease,
-          box-shadow 180ms ease,
-          border-color 180ms ease;
-      }
-
-      .glass-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(99, 102, 241, 0.25);
-        box-shadow: 0 22px 50px -22px rgba(79, 70, 229, 0.35);
-      }
-
-      .soft-ring {
-        box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
-      }
-
-      .ui-btn,
-      .ui-field {
-        transition: all 180ms ease;
-      }
-
-      .ui-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 14px 30px -18px rgba(37, 99, 235, 0.35);
-      }
-
-      .ui-btn:active,
-      .btn-base:active {
-        transform: translateY(0);
-      }
-
-      .ui-field:hover {
-        background: rgba(255, 255, 255, 0.96);
-      }
-
-      .no-select {
-        user-select: none;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-      }
-
-      .panel-card {
-        background: rgba(255, 255, 255, 0.96);
-        border: 1px solid rgba(148, 163, 184, 0.22);
-        border-radius: 24px;
-        box-shadow: 0 18px 45px -22px rgba(15, 23, 42, 0.28);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
-      }
-
-      .field-input {
-        min-height: 46px;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        background: rgba(248, 250, 252, 0.92);
-        color: #0f172a;
-        padding: 0.625rem 0.875rem;
-        box-sizing: border-box;
-        font-size: 0.95rem;
-        line-height: 1.4;
-      }
-
-      .btn-base {
-        min-height: 46px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.625rem 0.875rem;
-        border-radius: 14px;
-        font-weight: 700;
-        letter-spacing: 0.01em;
-        white-space: nowrap;
-        box-sizing: border-box;
-        transition:
-          transform 180ms ease,
-          box-shadow 180ms ease,
-          background-color 180ms ease,
-          color 180ms ease,
-          border-color 180ms ease;
-      }
-
-      .btn-primary {
-        background: linear-gradient(135deg, #2563eb, #3b82f6);
-        color: #fff;
-        border: 1px solid rgba(37, 99, 235, 0.18);
-        box-shadow: 0 14px 30px -18px rgba(37, 99, 235, 0.35);
-      }
-
-      .btn-secondary {
-        background: #fff;
-        color: #2563eb;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.25);
-      }
-
-      .btn-success {
-        background: #ecfdf5;
-        color: #047857;
-        border: 1px solid #a7f3d0;
-      }
-
-      .btn-base:hover,
-      .btn-primary:hover,
-      .btn-secondary:hover,
-      .btn-success:hover {
-        transform: translateY(-1px);
-      }
-
-      button:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-        transform: none !important;
-        box-shadow: none !important;
-      }
-
-      @media (max-width: 640px) {
-        .ui-grid {
-          gap: 0.875rem;
-        }
-      }
-
-      @media (max-width: 1024px) {
-        .app-shell {
-          overflow-x: hidden;
-          min-width: 0;
-        }
-
-        .content-scroll {
-          min-width: 0;
-          overflow-x: hidden;
-        }
-      }
-
-      :focus-visible {
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
-      }
-
-      .ui-field:focus {
-        box-shadow:
-          0 0 0 4px rgba(59, 130, 246, 0.14),
-          0 14px 30px -18px rgba(37, 99, 235, 0.35);
-      }
-
-      @media (max-width: 1024px) {
-        .sidebar-shell {
-          width: min(88vw, 18rem);
-        }
-      }
-
-      @media (max-width: 640px) {
-        .glass-card,
-        .panel-card {
-          border-radius: 22px;
-          padding: 1rem;
-        }
-
-        .ui-grid {
-          grid-template-columns: 1fr;
-          gap: 0.875rem;
-        }
-
-        #grid-lancamentos {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .toast {
-        position: relative;
-        min-width: 320px;
-        padding: 16px;
-        border-radius: 12px;
-        background: white;
-        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        overflow: hidden;
-      }
-      .toast-progress {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 3px;
-        background: currentColor;
-        animation: toast-progress 3s linear forwards;
-      }
-      .toast.success {
-        border-left: 4px solid #10b981;
-      }
-      .toast.success .toast-progress {
-        background: #10b981;
-      }
-      .toast.error {
-        border-left: 4px solid #ef4444;
-      }
-      .toast.error .toast-progress {
-        background: #ef4444;
-      }
-      .toast.info {
-        border-left: 4px solid #3b82f6;
-      }
-      .toast.info .toast-progress {
-        background: #3b82f6;
-      }
-    </style>
+    <link rel="stylesheet" href="css/output.css" />
   </head>
   <body
     class="bg-slate-50 font-sans flex h-screen overflow-hidden text-slate-800 antialiased selection:bg-brand-200 selection:text-brand-900"
@@ -880,7 +456,15 @@
       </symbol>
       <symbol id="icon-file-excel" viewBox="0 0 24 24">
         <path
-          d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7ZM14 2v4a2 2 0 0 0 2 2h4M8 13h2M14 13h2M8 17h2M14 17h2"
+          d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <path
+          d="M14 2v4a2 2 0 0 0 2 2h4M9.5 11.5 14.5 17.5M14.5 11.5 9.5 17.5"
           fill="none"
           stroke="currentColor"
           stroke-width="1.5"
@@ -1151,6 +735,27 @@
           stroke-linejoin="round"
         />
       </symbol>
+      <symbol id="icon-eye" viewBox="0 0 24 24">
+        <path
+          d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+        <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="icon-eye-slash" viewBox="0 0 24 24">
+        <path
+          d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </symbol>
     </svg>
 
     <!-- Tela de Login -->
@@ -1181,7 +786,7 @@
             COENG
           </p>
         </div>
-        <form id="form-login" class="space-y-5">
+        <form id="form-login" class="space-y-5" autocomplete="off">
           <div>
             <label
               class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"
@@ -1191,6 +796,7 @@
               type="email"
               id="login-email"
               required
+              autocomplete="off"
               class="field-input ui-field w-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 bg-slate-50/50 hover:bg-white text-sm"
               placeholder="acesso@demap.com"
             />
@@ -1203,12 +809,9 @@
               >
               <a
                 href="#"
-                onclick="
-                  showToast(
-                    'Contate o administrador para redefinir a senha.',
-                    'info',
-                  )
-                "
+                data-action="show-toast"
+                data-message="Contate o administrador para redefinir a senha."
+                data-type="info"
                 class="text-[10px] sm:text-xs font-bold text-brand-600 hover:text-brand-700 transition-colors"
                 >Esqueceu?</a
               >
@@ -1218,16 +821,20 @@
                 type="password"
                 id="login-password"
                 required
+                autocomplete="new-password"
                 class="field-input ui-field w-full border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 transition-all text-slate-700 bg-slate-50/50 hover:bg-white text-sm pr-10"
                 placeholder="••••••••"
               />
-              <div
-                class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400"
+              <button
+                type="button"
+                data-action="toggle-password"
+                class="absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 hover:text-brand-600 focus:outline-none transition-colors"
+                aria-label="Mostrar/Ocultar senha"
               >
                 <svg class="w-4 h-4" aria-hidden="true">
-                  <use href="#icon-lock"></use>
+                  <use id="icon-password-toggle" href="#icon-eye"></use>
                 </svg>
-              </div>
+              </button>
             </div>
           </div>
           <button
@@ -1243,7 +850,7 @@
           <button
             type="button"
             id="btn-login-anonimo"
-            onclick="loginAnonimo()"
+            data-action="login-anonimo"
             class="text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center gap-1.5 w-full"
           >
             <svg class="w-3.5 h-3.5" aria-hidden="true">
@@ -1287,13 +894,13 @@
         </div>
         <div class="flex gap-3 justify-end mt-8">
           <button
-            onclick="fecharModalConfirmacao()"
+            data-action="fechar-confirmacao"
             class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
           >
             Cancelar
           </button>
           <button
-            onclick="confirmarModalConfirmacao()"
+            data-action="confirmar-acao"
             id="btn-modal-confirmar"
             class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md shadow-red-500/20"
           >
@@ -1336,13 +943,13 @@
         </div>
         <div class="flex gap-3 justify-end mt-8">
           <button
-            onclick="fecharModalPrompt()"
+            data-action="fechar-prompt"
             class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
           >
             Cancelar
           </button>
           <button
-            onclick="confirmarModalPrompt()"
+            data-action="confirmar-prompt"
             class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-md shadow-brand-500/20"
           >
             Adicionar
@@ -1413,7 +1020,7 @@
             <button
               type="button"
               id="btn-trocar-senha"
-              onclick="enviarEmailTrocaSenha()"
+              data-action="trocar-senha"
               class="px-3 py-2 bg-white hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200 flex items-center gap-1.5 shadow-sm shrink-0"
             >
               <svg class="w-3.5 h-3.5 text-slate-400" aria-hidden="true">
@@ -1425,13 +1032,13 @@
         </div>
         <div class="flex gap-3 justify-end mt-8">
           <button
-            onclick="fecharModalPerfil()"
+            data-action="fechar-perfil"
             class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
           >
             Cancelar
           </button>
           <button
-            onclick="salvarPerfil()"
+            data-action="salvar-perfil"
             id="btn-salvar-perfil"
             class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-brand-600 hover:bg-brand-700 transition-colors shadow-md shadow-brand-500/20"
           >
@@ -1483,13 +1090,13 @@
         </div>
         <div class="flex gap-3 justify-end mt-8">
           <button
-            onclick="fecharModalConfiguracoes()"
+            data-action="fechar-configuracoes"
             class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
           >
             Cancelar
           </button>
           <button
-            onclick="salvarConfiguracoes()"
+            data-action="salvar-configuracoes"
             class="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-slate-800 hover:bg-slate-900 transition-colors shadow-md"
           >
             Salvar
@@ -1502,7 +1109,7 @@
     <div
       id="sidebar-overlay"
       class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 opacity-0 pointer-events-none lg:hidden transition-opacity duration-300"
-      onclick="toggleSidebar()"
+      data-action="toggle-sidebar"
     ></div>
 
     <!-- Espaçador Desktop -->
@@ -1541,7 +1148,7 @@
           </p>
         </div>
         <button
-          onclick="toggleSidebar()"
+          data-action="toggle-sidebar"
           class="lg:hidden absolute right-4 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-colors z-20 w-10 h-10 flex items-center justify-center"
         >
           <svg class="text-xl" aria-hidden="true">
@@ -1558,7 +1165,8 @@
         </p>
 
         <button
-          onclick="switchTab('dashboard')"
+          data-action="switch-tab"
+          data-tab="dashboard"
           id="btn-dashboard"
           class="w-full flex items-center gap-4 px-5 py-3.5 font-semibold transition-all text-left whitespace-nowrap bg-brand-600/15 text-brand-400 border-r-2 border-brand-500 group/btn"
         >
@@ -1577,7 +1185,8 @@
         </button>
 
         <button
-          onclick="switchTab('lancamentos')"
+          data-action="switch-tab"
+          data-tab="lancamentos"
           id="btn-lancamentos"
           class="w-full flex items-center gap-4 px-5 py-3.5 font-semibold transition-all text-left whitespace-nowrap hover:bg-slate-800 text-slate-400 border-r-2 border-transparent group/btn"
         >
@@ -1698,7 +1307,7 @@
         <div class="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
           <button
             type="button"
-            onclick="toggleSidebar()"
+            data-action="toggle-sidebar"
             aria-label="Abrir menu lateral"
             class="lg:hidden text-slate-500 hover:text-brand-600 focus:outline-none transition-colors p-1.5 rounded-lg hover:bg-brand-50"
           >
@@ -1727,7 +1336,7 @@
           <div class="relative hidden sm:block">
             <button
               type="button"
-              onclick="toggleNotifications()"
+              data-action="toggle-notifications"
               aria-label="Notificações"
               class="relative p-2.5 text-slate-400 hover:text-brand-600 hover:bg-brand-50 rounded-full transition-colors focus:outline-none"
             >
@@ -1749,7 +1358,7 @@
                 <p class="text-sm font-bold text-slate-800">Notificações</p>
                 <button
                   type="button"
-                  onclick="limparNotificacoes()"
+                  data-action="limpar-notificacoes"
                   class="text-xs text-brand-600 font-semibold hover:text-brand-700 transition-colors"
                 >
                   Marcar como lidas
@@ -1783,7 +1392,7 @@
           <div class="relative">
             <button
               id="user-avatar-btn"
-              onclick="toggleDropdown()"
+              data-action="toggle-dropdown"
               class="bg-gradient-to-br from-brand-500 to-indigo-600 text-white shadow-lg shadow-brand-500/30 rounded-xl h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center font-black text-lg ring-2 ring-white cursor-pointer hover:scale-105 transition-transform flex-shrink-0 no-select focus:outline-none"
             >
               U
@@ -1810,7 +1419,7 @@
               </div>
               <div class="p-2">
                 <button
-                  onclick="abrirModalPerfil()"
+                  data-action="abrir-perfil"
                   class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors text-left group"
                 >
                   <svg
@@ -1823,7 +1432,7 @@
                 </button>
                 <button
                   id="btn-menu-configuracoes"
-                  onclick="abrirModalConfiguracoes()"
+                  data-action="abrir-configuracoes"
                   class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors text-left group"
                 >
                   <svg
@@ -1836,7 +1445,7 @@
                 </button>
                 <div class="h-px bg-slate-100 my-2 mx-2"></div>
                 <button
-                  onclick="logout()"
+                  data-action="logout"
                   class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors text-left group"
                 >
                   <svg
@@ -2126,7 +1735,7 @@
                       ></select>
                       <button
                         type="button"
-                        onclick="abrirModalPrompt()"
+                        data-action="abrir-prompt"
                         aria-label="Cadastrar novo responsável"
                         class="btn-base btn-secondary h-[44px] w-full sm:w-auto"
                         title="Cadastrar Novo"
@@ -2139,7 +1748,7 @@
                       <button
                         id="btn-remover-encarregado"
                         type="button"
-                        onclick="removerEncarregadoSelecionado()"
+                        data-action="remover-encarregado"
                         aria-label="Remover responsável selecionado"
                         class="btn-base btn-secondary h-[44px] w-full sm:w-auto text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300"
                         title="Remover Selecionado"
@@ -2193,8 +1802,8 @@
                 <div
                   class="flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm w-full min-[480px]:w-auto xl:min-w-[180px] min-w-0 transition-colors focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
                 >
-                  <svg class="text-slate-400 text-sm mr-2" aria-hidden="true">
-                    <use href="#icon-user-tie"></use>
+                  <svg class="text-brand-500 text-sm mr-2" aria-hidden="true">
+                    <use href="#icon-users-gear"></use>
                   </svg>
                   <select
                     id="select-filtro-encarregado"
@@ -2235,26 +1844,35 @@
                 </div>
 
                 <div
-                  class="relative flex items-center bg-slate-50 border border-slate-200 rounded-xl shadow-sm w-full min-[480px]:w-auto xl:min-w-[240px] min-w-0"
+                  class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl shadow-sm w-full min-[480px]:w-auto xl:min-w-[240px] px-3 h-[44px] transition-colors focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20"
                 >
-                  <div
-                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none"
+                  <svg
+                    class="w-4 h-4 text-slate-400 flex-shrink-0"
+                    aria-hidden="true"
                   >
-                    <svg class="w-4 h-4 text-slate-400" aria-hidden="true">
-                      <use href="#icon-magnifying-glass"></use>
-                    </svg>
-                  </div>
+                    <use href="#icon-magnifying-glass"></use>
+                  </svg>
                   <input
                     type="text"
                     id="input-search"
                     placeholder="Pesquisar..."
                     aria-label="Pesquisar lançamentos"
-                    class="field-input block w-full min-w-0 pl-10 pr-4 py-2.5 h-[44px] border-0 bg-transparent rounded-xl text-slate-700 font-medium focus:outline-none focus:ring-0 focus:border-transparent text-sm transition-all shadow-none placeholder-slate-400 leading-5"
+                    class="w-full bg-transparent border-none p-0 m-0 text-slate-700 font-medium focus:ring-0 focus:outline-none text-sm placeholder-slate-400 shadow-none"
                   />
+                  <button
+                    type="button"
+                    id="btn-clear-search"
+                    aria-label="Limpar pesquisa"
+                    class="hidden text-slate-400 hover:text-slate-600 focus:outline-none p-1 transition-colors flex-shrink-0"
+                  >
+                    <svg class="w-3.5 h-3.5" aria-hidden="true">
+                      <use href="#icon-xmark"></use>
+                    </svg>
+                  </button>
                 </div>
                 <button
                   type="button"
-                  onclick="limparFiltros()"
+                  data-action="limpar-filtros"
                   aria-label="Limpar filtros"
                   class="btn-base bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-red-600 shrink-0 w-full min-[480px]:w-auto xl:w-auto transition-colors shadow-sm"
                   title="Limpar Filtros"
@@ -2266,7 +1884,7 @@
                 </button>
                 <button
                   type="button"
-                  onclick="exportarExcel()"
+                  data-action="exportar-excel"
                   aria-label="Exportar lançamentos para Excel"
                   class="btn-base btn-success shrink-0 w-full min-[480px]:w-auto xl:w-auto"
                   title="Exportar para Excel"
@@ -2317,7 +1935,8 @@
                 <button
                   id="btn-prev-page"
                   type="button"
-                  onclick="mudarPagina(-1)"
+                  data-action="mudar-pagina"
+                  data-dir="-1"
                   aria-label="Página anterior"
                   class="btn-base px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
                 >
@@ -2334,7 +1953,8 @@
                 <button
                   id="btn-next-page"
                   type="button"
-                  onclick="mudarPagina(1)"
+                  data-action="mudar-pagina"
+                  data-dir="1"
                   aria-label="Próxima página"
                   class="btn-base px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm transition-all"
                 >
@@ -2351,1573 +1971,6 @@
     </main>
 
     <!-- Scripts -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-      import {
-        getAuth,
-        signInAnonymously,
-        signInWithCustomToken,
-        signInWithEmailAndPassword,
-        onAuthStateChanged,
-        signOut,
-        updateProfile,
-        sendPasswordResetEmail,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-      import {
-        getFirestore,
-        collection,
-        addDoc,
-        onSnapshot,
-        deleteDoc,
-        doc,
-        serverTimestamp,
-        writeBatch,
-        updateDoc,
-        getDocs,
-        setDoc,
-        query,
-        orderBy,
-        limit,
-      } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-      // ==========================================
-      // 0. ESTADO GLOBAL E UI UTILS
-      // ==========================================
-      let chartEnc = null;
-      let chartMat = null;
-      let acaoPendenteModal = null;
-
-      const SVG_ICONS = {
-        check: '<path d="M5 12.5 9.5 17 19 7.5" />',
-        xmark: '<path d="M6 6 18 18M18 6 6 18" />',
-        info: '<circle cx="12" cy="12" r="8" /><path d="M12 10v4" /><path d="M12 16h.01" />',
-        spinner: '<path d="M12 3a9 9 0 1 0 9 9" /><path d="M12 3v4" />',
-        folder:
-          '<path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h3.2a1.5 1.5 0 0 1 1.06.44l1.48 1.48A1.5 1.5 0 0 0 12.3 7.5H18.5A2.5 2.5 0 0 1 21 10v6.5A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z" />',
-        checkDouble: '<path d="m4 12 5 5L20 6" /><path d="m9 17 10-11" />',
-        clock: '<circle cx="12" cy="12" r="8" /><path d="M12 8v4l2.5 2.5" />',
-        calendar:
-          '<rect x="3" y="5" width="18" height="16" rx="3" /><path d="M8 3v4M16 3v4M3 10h18" />',
-        userTie:
-          '<path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /><path d="M4 21a4 4 0 0 1 8 0" /><path d="M18 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /><path d="M15 21a4 4 0 0 1 6 0" />',
-        layer:
-          '<path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="m4 12 8 4 8-4" /><path d="m4 16 8 4 8-4" />',
-        trash:
-          '<path d="M4 7h16" /><path d="M9 7V4h6v3" /><path d="M7 7l1 12h8l1-12" />',
-        bars: '<path d="M4 7h16M4 12h16M4 17h16" />',
-        plus: '<path d="M12 5v14M5 12h14" />',
-        triangle:
-          '<path d="M12 4 3 19h18L12 4Z" /><path d="M12 9v4" /><path d="M12 15h.01" />',
-        chart:
-          '<path d="M4 19h16" /><path d="M7 16V9" /><path d="M12 16V5" /><path d="M17 16v-3" />',
-        chartBar:
-          '<path d="M4 19h16" /><path d="M7 15V9" /><path d="M12 15V5" /><path d="M17 15v-7" />',
-        database:
-          '<path d="M12 3c4.4 0 8 1.8 8 4s-3.6 4-8 4-8-1.8-8-4 3.6-4 8-4Z" /><path d="M4 7v10c0 2.2 3.6 4 8 4s8-1.8 8-4V7" /><path d="M4 12c0 2.2 3.6 4 8 4s8-1.8 8-4" />',
-        import:
-          '<path d="M12 3v10" /><path d="M8 9l4 4 4-4" /><path d="M5 15v3h14v-3" />',
-        chevronLeft: '<path d="m15 18-6-6 6-6" />',
-        chevronRight: '<path d="m9 6 6 6-6 6" />',
-        search: '<circle cx="11" cy="11" r="6" /><path d="m20 20-4.2-4.2" />',
-        excel:
-          '<path d="M7 3h10l4 4v14H7z" /><path d="M10 9h4" /><path d="M10 13h4" /><path d="M10 17h4" />',
-        user: '<path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" /><path d="M20 21a8 8 0 0 0-16 0" />',
-        logout:
-          '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />',
-        bell: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />',
-        gear: '<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />',
-      };
-
-      function svgIcon(name, className = "w-4 h-4", extra = "") {
-        return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${SVG_ICONS[name] || ""}</svg>`;
-      }
-
-      // Saudação Dinâmica
-      const setGreeting = () => {
-        const hour = new Date().getHours();
-        const el = document.getElementById("page-greeting");
-        if (hour < 12)
-          el.textContent =
-            "Bom dia. Pronto para otimizar as movimentações de hoje?";
-        else if (hour < 18)
-          el.textContent =
-            "Boa tarde. Acompanhe as saídas de materiais em tempo real.";
-        else
-          el.textContent =
-            "Boa noite. O fechamento diário dos lançamentos está consolidado.";
-      };
-      setGreeting();
-
-      window.toggleSidebar = function () {
-        const sidebar = document.getElementById("sidebar");
-        const overlay = document.getElementById("sidebar-overlay");
-        sidebar.classList.toggle("-translate-x-full");
-        overlay.classList.toggle("opacity-0");
-        overlay.classList.toggle("pointer-events-none");
-      };
-
-      function closeSidebarOnMobile() {
-        if (window.innerWidth < 1024) {
-          document.getElementById("sidebar").classList.add("-translate-x-full");
-          document
-            .getElementById("sidebar-overlay")
-            .classList.add("opacity-0", "pointer-events-none");
-        }
-      }
-
-      window.toggleDropdown = function () {
-        const dropdown = document.getElementById("user-dropdown");
-        if (dropdown) {
-          dropdown.classList.toggle("opacity-0");
-          dropdown.classList.toggle("pointer-events-none");
-          dropdown.classList.toggle("scale-95");
-        }
-      };
-
-      // Fecha o menu suspenso ao clicar fora dele
-      document.addEventListener("click", (e) => {
-        const dropdown = document.getElementById("user-dropdown");
-        if (dropdown) {
-          const isClickInside =
-            e.target.closest("#user-dropdown") ||
-            e.target.closest('button[onclick="toggleDropdown()"]');
-          if (!isClickInside && !dropdown.classList.contains("opacity-0")) {
-            window.toggleDropdown();
-          }
-        }
-
-        const notifDropdown = document.getElementById("notifications-dropdown");
-        if (notifDropdown) {
-          const isClickInsideNotif =
-            e.target.closest("#notifications-dropdown") ||
-            e.target.closest('button[onclick="toggleNotifications()"]');
-          if (
-            !isClickInsideNotif &&
-            !notifDropdown.classList.contains("opacity-0")
-          ) {
-            window.toggleNotifications();
-          }
-        }
-      });
-
-      window.toggleNotifications = function () {
-        const dropdown = document.getElementById("notifications-dropdown");
-        if (dropdown) {
-          dropdown.classList.toggle("opacity-0");
-          dropdown.classList.toggle("pointer-events-none");
-          dropdown.classList.toggle("scale-95");
-        }
-      };
-
-      window.limparNotificacoes = async function () {
-        if (!notificacoesNaoLidas.length || !db || !currentUser) return;
-        try {
-          const batch = writeBatch(db);
-          notificacoesNaoLidas.forEach(id => {
-            const ref = doc(db, "artifacts", appId, "users", currentUser.uid, "notificacoes", id);
-            batch.update(ref, { lida: true });
-          });
-          await batch.commit();
-            showToast("Notificações lidas com sucesso!", "success");
-            toggleNotifications();
-        } catch (error) {
-          console.error("Erro ao limpar notificações:", error);
-            showToast("Erro ao limpar notificações.", "error");
-        }
-      };
-
-      window.criarNotificacao = async function (titulo, mensagem, tipo = "info") {
-        if (!notificacoesRef || !currentUser) return;
-        try {
-          await addDoc(notificacoesRef, {
-            titulo,
-            mensagem,
-            tipo,
-            lida: false,
-            timestamp: serverTimestamp()
-          });
-        } catch (error) {
-          console.error("Erro ao criar notificação:", error);
-        }
-      };
-
-      window.iniciarEscutaNotificacoes = function() {
-        if (!notificacoesRef) return;
-        const q = query(notificacoesRef, orderBy("timestamp", "desc"), limit(20));
-        onSnapshot(q, (snapshot) => {
-          const lista = document.getElementById("lista-notificacoes");
-          const badge = document.getElementById("badge-notificacoes");
-          let html = "";
-          notificacoesNaoLidas = [];
-
-          if (snapshot.empty) {
-            html = `
-              <div class="p-8 text-center text-slate-400">
-                <div class="bg-slate-50 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
-                  ${svgIcon("checkDouble", "w-6 h-6")}
-                </div>
-                <p class="text-xs font-bold text-slate-600">Tudo limpo por aqui</p>
-                <p class="text-[10px] mt-1 font-medium">Você não possui novas notificações.</p>
-              </div>
-            `;
-          } else {
-            snapshot.forEach(docSnap => {
-              const notif = docSnap.data();
-              if (!notif.lida) notificacoesNaoLidas.push(docSnap.id);
-              
-              const date = notif.timestamp ? notif.timestamp.toDate() : new Date();
-              const timeStr = date.toLocaleDateString('pt-BR') + ' às ' + date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-              
-              const bgHover = notif.lida ? "hover:bg-slate-50" : "bg-brand-50/30 hover:bg-brand-50/50 cursor-pointer";
-              const dot = notif.lida ? "" : `<div class="w-1.5 h-1.5 bg-brand-500 rounded-full mt-1.5 flex-shrink-0"></div>`;
-              const textColor = notif.lida ? "text-slate-800" : "text-brand-700";
-
-              html += `
-                <div class="p-3 ${bgHover} rounded-xl transition-colors mb-1 border border-transparent hover:border-slate-100 group flex gap-2 items-start">
-                  ${dot}
-                  <div>
-                    <p class="text-xs font-bold ${textColor} transition-colors">${notif.titulo}</p>
-                    <p class="text-[10px] text-slate-500 mt-1">${notif.mensagem}</p>
-                    <p class="text-[9px] text-slate-400 mt-2 font-semibold uppercase tracking-wider">${timeStr}</p>
-                  </div>
-                </div>
-              `;
-            });
-          }
-          if (lista) lista.innerHTML = html;
-          if (badge) {
-            if (notificacoesNaoLidas.length > 0) badge.classList.remove("opacity-0");
-            else badge.classList.add("opacity-0");
-          }
-        }, (error) => console.error("Erro ao escutar notificações:", error));
-      };
-
-      window.logout = () => {
-        if (!auth) return;
-
-        const dropdown = document.getElementById("user-dropdown");
-        if (dropdown && !dropdown.classList.contains("opacity-0"))
-          toggleDropdown();
-
-        abrirModalConfirmacao(
-          "Sair do Sistema",
-          "Tem certeza de que deseja encerrar a sua sessão agora?",
-          async () => {
-            try {
-              await signOut(auth);
-              showToast("Sessão encerrada com sucesso.", "success");
-              setTimeout(() => window.location.reload(), 1000);
-            } catch (error) {
-              showToast("Erro ao sair.", "error");
-            }
-          },
-          "Sair",
-        );
-      };
-
-      window.abrirModalPerfil = () => {
-        if (!currentUser) return;
-        // Fecha o dropdown do usuário
-        const dropdown = document.getElementById("user-dropdown");
-        if (dropdown && !dropdown.classList.contains("opacity-0"))
-          toggleDropdown();
-
-        const modal = document.getElementById("modal-perfil");
-        const content = document.getElementById("modal-perfil-content");
-
-        document.getElementById("input-perfil-email").value =
-          currentUser.email || "visitante@coeng.com";
-        document.getElementById("input-perfil-nome").value =
-          document.getElementById("user-dropdown-name").textContent;
-
-        modal.classList.remove("hidden");
-        setTimeout(() => {
-          modal.classList.remove("opacity-0");
-          content.classList.remove("scale-95");
-        }, 10);
-      };
-
-      window.fecharModalPerfil = () => {
-        const modal = document.getElementById("modal-perfil");
-        const content = document.getElementById("modal-perfil-content");
-        modal.classList.add("opacity-0");
-        content.classList.add("scale-95");
-        setTimeout(() => modal.classList.add("hidden"), 300);
-      };
-
-      window.salvarPerfil = async () => {
-        if (!currentUser) return;
-        const novoNome = document
-          .getElementById("input-perfil-nome")
-          .value.trim();
-        if (!novoNome)
-          return showToast("O nome não pode ficar vazio.", "error");
-
-        const btn = document.getElementById("btn-salvar-perfil");
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `${svgIcon("spinner", "w-4 h-4 animate-spin")} Salvando...`;
-        btn.disabled = true;
-        try {
-          await updateProfile(currentUser, { displayName: novoNome });
-          const headerNameEl = document.getElementById("header-user-name");
-          if (headerNameEl) headerNameEl.textContent = novoNome.split(" ")[0];
-          const dropNameEl = document.getElementById("user-dropdown-name");
-          if (dropNameEl) dropNameEl.textContent = novoNome;
-          const avatarBtnEl = document.getElementById("user-avatar-btn");
-          if (avatarBtnEl)
-            avatarBtnEl.textContent = novoNome.charAt(0).toUpperCase();
-          showToast("Perfil atualizado com sucesso!", "success");
-          fecharModalPerfil();
-        } catch (error) {
-          showToast("Erro ao atualizar perfil.", "error");
-        } finally {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-        }
-      };
-
-      window.enviarEmailTrocaSenha = async () => {
-        if (!currentUser || !currentUser.email) {
-          showToast("Apenas contas com e-mail podem alterar a senha.", "error");
-          return;
-        }
-        const btn = document.getElementById("btn-trocar-senha");
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `${svgIcon("spinner", "w-3.5 h-3.5 animate-spin")} ...`;
-        btn.disabled = true;
-
-        try {
-          await sendPasswordResetEmail(auth, currentUser.email);
-          showToast(
-            "Link de redefinição enviado para o seu e-mail!",
-            "success",
-          );
-        } catch (error) {
-          showToast(
-            "Erro ao processar solicitação de troca de senha.",
-            "error",
-          );
-        } finally {
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-        }
-      };
-
-      window.abrirModalConfiguracoes = () => {
-        if (!isAdmin) {
-          return showToast("Acesso restrito a Administradores.", "error");
-        }
-        const dropdown = document.getElementById("user-dropdown");
-        if (dropdown && !dropdown.classList.contains("opacity-0"))
-          toggleDropdown();
-
-        const modal = document.getElementById("modal-configuracoes");
-        const content = document.getElementById("modal-configuracoes-content");
-        document.getElementById("config-itens-pagina").value = itensPorPagina;
-        modal.classList.remove("hidden");
-        setTimeout(() => {
-          modal.classList.remove("opacity-0");
-          content.classList.remove("scale-95");
-        }, 10);
-      };
-
-      window.fecharModalConfiguracoes = () => {
-        const modal = document.getElementById("modal-configuracoes");
-        const content = document.getElementById("modal-configuracoes-content");
-        modal.classList.add("opacity-0");
-        content.classList.add("scale-95");
-        setTimeout(() => modal.classList.add("hidden"), 300);
-      };
-
-      window.salvarConfiguracoes = () => {
-        itensPorPagina =
-          parseInt(document.getElementById("config-itens-pagina").value) || 9;
-        localStorage.setItem(
-          "demap_configuracoes",
-          JSON.stringify({ itensPorPagina }),
-        );
-        showToast("Configurações salvas!", "success");
-        fecharModalConfiguracoes();
-        paginaAtual = 1;
-        if (dadosFiltrados.length > 0) renderizarGridLancamentos();
-      };
-
-      // ==========================================
-      // 1. NOTIFICAÇÕES & MODAIS
-      // ==========================================
-      window.showToast = function (message, type = "success") {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-
-        const icons = {
-          success: `<div class="bg-emerald-100 p-2 rounded-full text-emerald-600">${svgIcon("check", "w-4 h-4")}</div>`,
-          error: `<div class="bg-red-100 p-2 rounded-full text-red-600">${svgIcon("xmark", "w-4 h-4")}</div>`,
-          info: `<div class="bg-brand-100 p-2 rounded-full text-brand-600">${svgIcon("info", "w-4 h-4")}</div>`,
-        };
-
-        toast.className = `toast ${type}`;
-        toast.innerHTML = `
-                ${icons[type] || icons.info} 
-                <span class="font-bold text-sm tracking-wide text-slate-700">${message}</span>
-                <div class="toast-progress"></div>
-            `;
-        container.appendChild(toast);
-
-        setTimeout(() => {
-          toast.style.transform = "translateY(20px)";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 400);
-        }, 3000);
-      };
-
-      window.abrirModalConfirmacao = (
-        titulo,
-        mensagem,
-        onConfirm,
-        txtBotao = "Confirmar",
-      ) => {
-        document.getElementById("modal-titulo").innerText = titulo;
-        document.getElementById("modal-mensagem").innerText = mensagem;
-        const btnModal = document.getElementById("btn-modal-confirmar");
-        if (btnModal) btnModal.innerText = txtBotao;
-        acaoPendenteModal = onConfirm;
-        const modal = document.getElementById("modal-confirmacao");
-        const content = document.getElementById("modal-confirmacao-content");
-        modal.classList.remove("hidden");
-        setTimeout(() => {
-          modal.classList.remove("opacity-0");
-          content.classList.remove("scale-95");
-        }, 10);
-      };
-
-      window.fecharModalConfirmacao = () => {
-        const modal = document.getElementById("modal-confirmacao");
-        const content = document.getElementById("modal-confirmacao-content");
-        modal.classList.add("opacity-0");
-        content.classList.add("scale-95");
-        setTimeout(() => modal.classList.add("hidden"), 300);
-        acaoPendenteModal = null;
-      };
-
-      window.confirmarModalConfirmacao = () => {
-        if (acaoPendenteModal) acaoPendenteModal();
-        fecharModalConfirmacao();
-      };
-
-      window.abrirModalPrompt = () => {
-        const modal = document.getElementById("modal-prompt");
-        const content = document.getElementById("modal-prompt-content");
-        const input = document.getElementById("input-modal-prompt");
-        input.value = "";
-        modal.classList.remove("hidden");
-        setTimeout(() => {
-          modal.classList.remove("opacity-0");
-          content.classList.remove("scale-95");
-          input.focus();
-        }, 10);
-      };
-
-      window.fecharModalPrompt = () => {
-        const modal = document.getElementById("modal-prompt");
-        const content = document.getElementById("modal-prompt-content");
-        modal.classList.add("opacity-0");
-        content.classList.add("scale-95");
-        setTimeout(() => modal.classList.add("hidden"), 300);
-      };
-
-      window.confirmarModalPrompt = async () => {
-        const input = document.getElementById("input-modal-prompt");
-        const novoNome = input.value.trim();
-        if (novoNome) {
-          if (!encarregados.includes(novoNome)) {
-            encarregados.push(novoNome);
-            renderizarSelectEncarregados();
-            document.getElementById("select-encarregado").value = novoNome;
-            showToast(`Encarregado "${novoNome}" adicionado!`, "success");
-            criarNotificacao("Novo Responsável", `O encarregado "${novoNome}" foi adicionado.`, "info");
-            fecharModalPrompt();
-
-            // Salvar na nuvem (Firestore)
-            if (db && appId) {
-              try {
-                await setDoc(
-                  doc(db, "artifacts", appId, "encarregados", novoNome),
-                  { nome: novoNome },
-                );
-              } catch (e) {}
-            }
-          } else {
-            showToast("Este encarregado já existe.", "error");
-          }
-        } else {
-          input.focus();
-        }
-      };
-
-      window.removerEncarregadoSelecionado = () => {
-        if (!isAdmin) {
-          return showToast(
-            "Apenas o Administrador pode remover encarregados.",
-            "error",
-          );
-        }
-        const select = document.getElementById("select-encarregado");
-        const encarregado = select.value;
-        if (!encarregado) {
-          showToast("Selecione um encarregado para remover.", "error");
-          return;
-        }
-
-        abrirModalConfirmacao(
-          "Excluir Encarregado",
-          `Tem certeza que deseja remover o encarregado "${encarregado}"?`,
-          async () => {
-            try {
-              if (db && appId) {
-                await deleteDoc(
-                  doc(db, "artifacts", appId, "encarregados", encarregado),
-                );
-                showToast(
-                  `Encarregado "${encarregado}" removido com sucesso.`,
-                  "success",
-                );
-              }
-            } catch (error) {
-              showToast("Erro ao remover encarregado.", "error");
-            }
-          },
-          "Excluir",
-        );
-      };
-
-      // ==========================================
-      // 2. DADOS ESTÁTICOS
-      // ==========================================
-      let encarregados = [];
-
-      function renderizarSelectEncarregados() {
-        const select = document.getElementById("select-encarregado");
-        const filtroSelect = document.getElementById(
-          "select-filtro-encarregado",
-        );
-
-        const valorAtual = select?.value;
-        const valorFiltroAtual = filtroSelect?.value;
-
-        if (select)
-          select.innerHTML =
-            '<option value="">Selecione o Responsável...</option>';
-        if (filtroSelect)
-          filtroSelect.innerHTML =
-            '<option value="">Todos os Encarregados</option>';
-
-        [...encarregados].sort().forEach((nome) => {
-          if (select) select.add(new Option(nome, nome));
-          if (filtroSelect) filtroSelect.add(new Option(nome, nome));
-        });
-        if (valorAtual && encarregados.includes(valorAtual))
-          select.value = valorAtual;
-        if (valorFiltroAtual && encarregados.includes(valorFiltroAtual))
-          filtroSelect.value = valorFiltroAtual;
-      }
-      renderizarSelectEncarregados();
-
-      let baseDados = {
-        14407: "LAMINADO DE FREIJÓ DE (200 MM A 400 MM)",
-        20932: "COMPENSADO VIROLA 2.750mm X 1.600mm X 4mm",
-        15934: "TUBO INDUSTRIAL TIPO METALON DE 25 mm X 25 mm",
-      };
-      const savedBase = localStorage.getItem("demap_base_dados");
-      if (savedBase) {
-        baseDados = JSON.parse(savedBase);
-        atualizarUIBaseDados(Object.keys(baseDados).length);
-      }
-
-      function atualizarUIBaseDados(count) {
-        const statusBase = document.getElementById("status-base");
-        if (statusBase) {
-          statusBase.classList.remove("hidden");
-          statusBase.classList.add("flex");
-          document.getElementById("status-base-text").textContent =
-            count.toLocaleString("pt-BR") + " itens integrados";
-        }
-      }
-
-      window.carregarBaseDoFirestore = async function () {
-        try {
-          const matSnapshot = await getDocs(
-            collection(db, "artifacts", appId, "materiais"),
-          );
-          if (!matSnapshot.empty) {
-            let newBase = {};
-            matSnapshot.forEach((doc) => {
-              newBase[doc.id] = doc.data().nome;
-            });
-            baseDados = newBase;
-            localStorage.setItem("demap_base_dados", JSON.stringify(baseDados));
-            atualizarUIBaseDados(Object.keys(baseDados).length);
-          }
-        } catch (e) {}
-      };
-
-      window.carregarEncarregadosDoFirestore = function () {
-        if (!db || !appId) return;
-        try {
-          onSnapshot(
-            collection(db, "artifacts", appId, "encarregados"),
-            (snapshot) => {
-              encarregados = [];
-              snapshot.forEach((doc) => {
-                encarregados.push(doc.data().nome || doc.id);
-              });
-              renderizarSelectEncarregados();
-            },
-            (error) => console.error("Erro ao carregar encarregados:", error),
-          );
-        } catch (e) {}
-      };
-
-      document
-        .getElementById("input-excel-base")
-        .addEventListener("change", function (e) {
-          if (!isAdmin) {
-            showToast("Apenas o Administrador pode carregar a base.", "error");
-            e.target.value = "";
-            return;
-          }
-          const file = e.target.files[0];
-          if (!file) return;
-          showToast("Sincronizando Base...", "info");
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            try {
-              const data = new Uint8Array(event.target.result);
-              const workbook = XLSX.read(data, { type: "array" });
-              const rows = XLSX.utils.sheet_to_json(
-                workbook.Sheets[workbook.SheetNames[0]],
-                { header: 1 },
-              );
-              let newBase = {};
-              for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                if (row && row.length >= 4) {
-                  let cod = String(row[1] || "")
-                    .replace(/(^"|"$)/g, "")
-                    .trim();
-                  let nome = String(row[3] || "")
-                    .replace(/(^"|"$)/g, "")
-                    .trim();
-                  if (
-                    cod &&
-                    nome &&
-                    cod !== "undefined" &&
-                    nome !== "undefined"
-                  )
-                    newBase[cod] = nome;
-                }
-              }
-              if (Object.keys(newBase).length > 0) {
-                baseDados = newBase;
-                localStorage.setItem(
-                  "demap_base_dados",
-                  JSON.stringify(baseDados),
-                );
-                atualizarUIBaseDados(Object.keys(baseDados).length);
-                showToast("Sincronizando com a Nuvem...", "info");
-
-                // Fazendo upload em lotes (batch) de 500 em 500 para o Firebase
-                (async () => {
-                  try {
-                    const keys = Object.keys(baseDados);
-                    for (let i = 0; i < keys.length; i += 500) {
-                      const chunk = keys.slice(i, i + 500);
-                      const batch = writeBatch(db);
-                      chunk.forEach((cod) => {
-                        batch.set(
-                          doc(db, "artifacts", appId, "materiais", cod),
-                          { nome: baseDados[cod] },
-                        );
-                      });
-                      await batch.commit();
-                    }
-                    showToast(
-                      `Base salva na nuvem com ${keys.length} itens.`,
-                      "success",
-                    );
-                  } catch (e) {
-                    showToast("Erro ao sincronizar com a nuvem.", "error");
-                  }
-                })();
-              } else {
-                showToast("Planilha inválida.", "error");
-              }
-            } catch (error) {
-              showToast("Erro ao ler Excel.", "error");
-            }
-          };
-          reader.readAsArrayBuffer(file);
-        });
-
-      document.getElementById("input-data").value = new Date()
-        .toISOString()
-        .split("T")[0];
-
-      const inputCodigo = document.getElementById("input-codigo");
-      const inputMaterial = document.getElementById("input-material");
-      const badgeEncontrado = document.getElementById("badge-encontrado");
-
-      inputCodigo.addEventListener("input", (e) => {
-        const cod = e.target.value.trim();
-        if (baseDados[cod]) {
-          inputMaterial.value = baseDados[cod];
-          inputMaterial.className =
-            "w-full rounded-xl border border-emerald-300 px-4 py-3 bg-emerald-50 text-emerald-800 font-bold focus:outline-none shadow-inner transition-colors text-sm";
-          badgeEncontrado.classList.remove("opacity-0");
-        } else {
-          badgeEncontrado.classList.add("opacity-0");
-          inputMaterial.value = cod.length > 2 ? "Material não catalogado" : "";
-          inputMaterial.className =
-            cod.length > 2
-              ? "w-full rounded-xl border border-red-200 px-4 py-3 bg-red-50 text-red-600 font-bold focus:outline-none shadow-inner transition-colors text-sm"
-              : "w-full rounded-xl border border-slate-200 px-4 py-3 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium";
-        }
-      });
-
-      // ==========================================
-      // 3. FIREBASE CONFIG
-      // ==========================================
-      let app,
-        auth,
-        db,
-        currentUser,
-        lancamentosRef,
-        notificacoesRef,
-        isAdmin = false;
-      let notificacoesNaoLidas = [];
-      const appId =
-        typeof __app_id !== "undefined" ? __app_id : "demap-estoque-app";
-      let dadosAtuais = [];
-      let dadosFiltrados = [];
-      let ordenacaoAtual = { coluna: "data", crescente: false };
-      let paginaAtual = 1;
-      let itensPorPagina = 9;
-
-      // Carrega as configurações locais
-      const savedConfig = localStorage.getItem("demap_configuracoes");
-      if (savedConfig) {
-        try {
-          const parsed = JSON.parse(savedConfig);
-          if (parsed.itensPorPagina) itensPorPagina = parsed.itensPorPagina;
-        } catch (e) {}
-      }
-
-      try {
-        const firebaseConfig =
-          typeof __firebase_config !== "undefined"
-            ? JSON.parse(__firebase_config)
-            : {
-                apiKey: "AIzaSyB8hC3rX_UuMIkdSdcswsez4n_7ZiDhJ6k",
-                authDomain: "saida-demap.firebaseapp.com",
-                projectId: "saida-demap",
-                storageBucket: "saida-demap.firebasestorage.app",
-                messagingSenderId: "28837173501",
-                appId: "1:28837173501:web:2a1d090d06479c8681c694",
-              };
-        app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        const initAuth = async () => {
-          if (
-            typeof __initial_auth_token !== "undefined" &&
-            __initial_auth_token
-          ) {
-            await signInWithCustomToken(auth, __initial_auth_token);
-          } else {
-            // Auto-login anônimo removido para exibir a tela de autenticação
-          }
-        };
-        initAuth();
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            currentUser = user;
-
-            // Atualizar UI com dados do usuário
-            const userEmail = user.email || "visitante@coeng.com";
-            let userNamePart = user.email
-              ? user.email.split("@")[0].split(".")[0]
-              : "Visitante";
-            let fullName = userNamePart;
-            let roleName = "Usuário Padrão";
-            let roleClass =
-              "text-xs text-blue-600 font-bold bg-blue-50 inline-block px-2 py-0.5 rounded-md mt-0.5";
-
-            if (userEmail.toLowerCase() === "jeffin.araujo.1990@gmail.com") {
-              userNamePart = "Jefferson";
-              fullName = "Jefferson de Araújo Silva";
-              roleName = "Administrador";
-              roleClass =
-                "text-xs text-brand-600 font-bold bg-brand-50 inline-block px-2 py-0.5 rounded-md mt-0.5";
-              isAdmin = true;
-            } else if (!user.email) {
-              roleName = "Visitante";
-              roleClass =
-                "text-xs text-slate-500 font-bold bg-slate-100 inline-block px-2 py-0.5 rounded-md mt-0.5";
-              isAdmin = false;
-            } else {
-              isAdmin = false;
-            }
-            const displayNameHeader = user.displayName
-              ? user.displayName.split(" ")[0]
-              : userNamePart.charAt(0).toUpperCase() + userNamePart.slice(1);
-            const displayNameFull =
-              user.displayName ||
-              fullName.charAt(0).toUpperCase() + fullName.slice(1);
-            const initial = displayNameHeader.charAt(0).toUpperCase();
-
-            const headerNameEl = document.getElementById("header-user-name");
-            if (headerNameEl) headerNameEl.textContent = displayNameHeader;
-
-            const dropNameEl = document.getElementById("user-dropdown-name");
-            if (dropNameEl) dropNameEl.textContent = displayNameFull;
-
-            const dropEmailEl = document.getElementById("user-dropdown-email");
-            if (dropEmailEl) dropEmailEl.textContent = userEmail;
-
-            const roleEl = document.getElementById("header-user-role");
-            if (roleEl) {
-              roleEl.textContent = roleName;
-              roleEl.className = roleClass;
-            }
-
-            const avatarBtnEl = document.getElementById("user-avatar-btn");
-            if (avatarBtnEl) avatarBtnEl.textContent = initial;
-
-            const btnConfig = document.getElementById("btn-menu-configuracoes");
-            if (btnConfig) btnConfig.style.display = isAdmin ? "" : "none";
-
-            const btnRemoverEnc = document.getElementById(
-              "btn-remover-encarregado",
-            );
-            if (btnRemoverEnc)
-              btnRemoverEnc.style.display = isAdmin ? "" : "none";
-
-            const btnCarregarBase =
-              document.getElementById("btn-carregar-base");
-            if (btnCarregarBase)
-              btnCarregarBase.style.display = isAdmin ? "" : "none";
-
-            const loginScreen = document.getElementById("login-screen");
-            if (loginScreen) {
-              loginScreen.classList.add("opacity-0");
-              setTimeout(() => loginScreen.classList.add("hidden"), 500);
-            }
-            lancamentosRef = collection(
-              db,
-              "artifacts",
-              appId,
-              "users",
-              user.uid,
-              "lancamentos",
-            );
-            notificacoesRef = collection(db, "artifacts", appId, "users", user.uid, "notificacoes");
-            iniciarEscutaNotificacoes();
-            carregarBaseDoFirestore();
-            carregarEncarregadosDoFirestore();
-            iniciarEscutaDeDados();
-          } else {
-            const loginScreen = document.getElementById("login-screen");
-            if (loginScreen) {
-              loginScreen.classList.remove("hidden");
-              setTimeout(() => loginScreen.classList.remove("opacity-0"), 10);
-            }
-          }
-        });
-      } catch (error) {
-        showToast("Falha de conexão com Cloud.", "error");
-      }
-
-      // Lógica do Formulário de Login
-      document
-        .getElementById("form-login")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const email = document.getElementById("login-email").value;
-          const pass = document.getElementById("login-password").value;
-          const btn = document.getElementById("btn-login");
-          const originalText = btn.innerHTML;
-
-          btn.innerHTML = `${svgIcon("spinner", "w-5 h-5 animate-spin")} Autenticando...`;
-          btn.disabled = true;
-
-          try {
-            await signInWithEmailAndPassword(auth, email, pass);
-            showToast("Login efetuado com sucesso!", "success");
-            // O onAuthStateChanged lidará com o fechamento da tela automaticamente
-          } catch (error) {
-            console.error(error);
-            showToast("E-mail ou senha incorretos.", "error");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-          }
-        });
-
-      window.loginAnonimo = async () => {
-        const btn = document.getElementById("btn-login-anonimo");
-        const originalText = btn.innerHTML;
-        btn.innerHTML = `${svgIcon("spinner", "w-4 h-4 animate-spin")} Aguarde...`;
-        btn.disabled = true;
-        try {
-          await signInAnonymously(auth);
-          showToast("Acesso Visitante liberado.", "success");
-        } catch (error) {
-          showToast("Erro ao acessar anonimamente.", "error");
-          btn.innerHTML = originalText;
-          btn.disabled = false;
-        }
-      };
-
-      document
-        .getElementById("input-excel-historico")
-        .addEventListener("change", async function (e) {
-          const file = e.target.files[0];
-          if (!file || !currentUser) return;
-          showToast("Processando histórico...", "info");
-          const reader = new FileReader();
-          reader.onload = async function (event) {
-            try {
-              const data = new Uint8Array(event.target.result);
-              const workbook = XLSX.read(data, { type: "array" });
-              const rows = XLSX.utils.sheet_to_json(
-                workbook.Sheets[workbook.SheetNames[0]],
-                { raw: false },
-              );
-              const batch = writeBatch(db);
-              let count = 0;
-              for (let row of rows) {
-                let dataLanc = row["Data"] || row["data"] || "";
-                let cod = String(
-                  row["Código Almox."] || row["Código"] || "",
-                ).trim();
-                let material = row["Material"] || row["material"] || "";
-                let qtd =
-                  parseFloat(
-                    row["Quantidade"] ||
-                      row["quantidade"] ||
-                      row["Qtd"] ||
-                      row["qtd"],
-                  ) || 0;
-                let encarregado =
-                  row["Encarregado"] || row["encarregado"] || "";
-                let valStatus = String(
-                  row["Status"] || row["status"] || row["Baixa"] || "",
-                ).toLowerCase();
-                let baixaFormatada =
-                  valStatus === "1" ||
-                  valStatus === "sim" ||
-                  valStatus === "baixado"
-                    ? "Sim"
-                    : "Não";
-                if (cod && qtd > 0 && dataLanc) {
-                  batch.set(
-                    doc(
-                      collection(
-                        db,
-                        "artifacts",
-                        appId,
-                        "users",
-                        currentUser.uid,
-                        "lancamentos",
-                      ),
-                    ),
-                    {
-                      data: dataLanc,
-                      codigo: cod,
-                      material: material,
-                      quantidade: qtd,
-                      encarregado: encarregado,
-                      baixa: baixaFormatada,
-                      timestamp: serverTimestamp(),
-                    },
-                  );
-                  count++;
-                }
-              }
-              if (count > 0) {
-                await batch.commit();
-                showToast(`${count} registros importados!`, "success");
-                criarNotificacao("Importação Concluída", `${count} lançamentos foram importados do histórico.`, "success");
-                e.target.value = "";
-              } else {
-                showToast("Planilha vazia ou com erros.", "error");
-              }
-            } catch (error) {
-              showToast("Falha na importação.", "error");
-            }
-          };
-          reader.readAsArrayBuffer(file);
-        });
-
-      // ==========================================
-      // 4. CRUD LANÇAMENTOS (GRID Avançado)
-      // ==========================================
-      document
-        .getElementById("form-lancamento")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          if (!currentUser || !lancamentosRef) return;
-          const btn = document.getElementById("btn-submit");
-          const original = btn.innerHTML;
-          btn.innerHTML = `${svgIcon("spinner", "w-4 h-4 animate-spin")} Processando...`;
-          btn.disabled = true;
-          const material = inputMaterial.value;
-          if (material.includes("Não catalogado") || material === "") {
-            showToast("Verifique o Código Almox.", "error");
-            btn.innerHTML = original;
-            btn.disabled = false;
-            return;
-          }
-          try {
-            await addDoc(lancamentosRef, {
-              data: document.getElementById("input-data").value,
-              codigo: document.getElementById("input-codigo").value,
-              material: material,
-              quantidade: parseFloat(
-                document.getElementById("input-quantidade").value,
-              ),
-              encarregado: document.getElementById("select-encarregado").value,
-              baixa: "Não",
-              timestamp: serverTimestamp(),
-            });
-            document.getElementById("form-lancamento").reset();
-            document.getElementById("input-data").value = new Date()
-              .toISOString()
-              .split("T")[0];
-            inputMaterial.className =
-              "w-full rounded-xl border border-slate-200 px-4 py-3 bg-slate-100/70 text-slate-500 focus:outline-none cursor-not-allowed shadow-inner transition-colors text-sm font-medium";
-            badgeEncontrado.classList.add("opacity-0");
-            showToast("Saída registrada com sucesso!");
-              const qtdNotif = document.getElementById("input-quantidade").value;
-              criarNotificacao("Nova Saída", `Material: ${material} | Qtd: ${qtdNotif}`, "success");
-          } catch (error) {
-            showToast("Erro no servidor.", "error");
-          } finally {
-            btn.innerHTML = original;
-            btn.disabled = false;
-          }
-        });
-
-      window.deletarLancamento = (docId) => {
-        if (!currentUser) return;
-        if (!isAdmin) {
-          return showToast(
-            "Apenas o Administrador pode excluir registros.",
-            "error",
-          );
-        }
-        abrirModalConfirmacao(
-          "Excluir Registro",
-          "Atenção: Esta ação removerá a saída do banco de dados permanentemente.",
-          async () => {
-            try {
-              await deleteDoc(
-                doc(
-                  db,
-                  "artifacts",
-                  appId,
-                  "users",
-                  currentUser.uid,
-                  "lancamentos",
-                  docId,
-                ),
-              );
-              showToast("Registro apagado.", "success");
-            } catch (e) {
-              showToast("Erro na exclusão.", "error");
-            }
-          },
-          "Excluir",
-        );
-      };
-
-      window.toggleBaixa = async (idOuIds, statusAtual) => {
-        if (!currentUser) return;
-        const novoStatus = statusAtual === "Sim" ? "Não" : "Sim";
-        try {
-          if (Array.isArray(idOuIds)) {
-            const batch = writeBatch(db);
-            idOuIds.forEach((id) =>
-              batch.update(
-                doc(
-                  db,
-                  "artifacts",
-                  appId,
-                  "users",
-                  currentUser.uid,
-                  "lancamentos",
-                  id,
-                ),
-                { baixa: novoStatus },
-              ),
-            );
-            await batch.commit();
-          } else {
-            await updateDoc(
-              doc(
-                db,
-                "artifacts",
-                appId,
-                "users",
-                currentUser.uid,
-                "lancamentos",
-                idOuIds,
-              ),
-              { baixa: novoStatus },
-            );
-          }
-          showToast(`Status alterado para "${novoStatus}".`, "success");
-        } catch (e) {
-          showToast("Erro ao sincronizar status.", "error");
-        }
-      };
-
-      function iniciarEscutaDeDados() {
-        onSnapshot(
-          lancamentosRef,
-          (snapshot) => {
-            dadosAtuais = [];
-            if (!snapshot.empty)
-              snapshot.forEach((doc) => {
-                dadosAtuais.push({ ...doc.data(), id: doc.id });
-              });
-            aplicarFiltroPesquisa();
-            atualizarDashboard();
-          },
-          (error) => showToast("Sincronização interrompida.", "error"),
-        );
-      }
-
-      const searchInput = document.getElementById("input-search");
-      const ordenacaoSelect = document.getElementById("select-ordenacao");
-      const filtroEncarregadoSelect = document.getElementById(
-        "select-filtro-encarregado",
-      );
-      const filtroStatusSelect = document.getElementById(
-        "select-filtro-status",
-      );
-
-      // Tenta recuperar os filtros salvos no navegador
-      const savedFiltrosStr = localStorage.getItem("demap_filtros");
-      if (savedFiltrosStr) {
-        try {
-          const savedFiltros = JSON.parse(savedFiltrosStr);
-          if (savedFiltros.search) searchInput.value = savedFiltros.search;
-          if (savedFiltros.encarregadoFiltro)
-            filtroEncarregadoSelect.value = savedFiltros.encarregadoFiltro;
-          if (savedFiltros.statusFiltro)
-            filtroStatusSelect.value = savedFiltros.statusFiltro;
-          if (savedFiltros.ordenacao) {
-            ordenacaoSelect.value = savedFiltros.ordenacao;
-            const val = savedFiltros.ordenacao;
-            if (val === "data_desc")
-              ordenacaoAtual = { coluna: "data", crescente: false };
-            else if (val === "data_asc")
-              ordenacaoAtual = { coluna: "data", crescente: true };
-            else if (val === "material_asc")
-              ordenacaoAtual = { coluna: "material", crescente: true };
-            else if (val === "quantidade_desc")
-              ordenacaoAtual = { coluna: "quantidade", crescente: false };
-            else if (val === "encarregado_asc")
-              ordenacaoAtual = { coluna: "encarregado", crescente: true };
-          }
-        } catch (e) {}
-      }
-
-      const salvarFiltros = () => {
-        localStorage.setItem(
-          "demap_filtros",
-          JSON.stringify({
-            search: searchInput.value,
-            encarregadoFiltro: filtroEncarregadoSelect.value,
-            statusFiltro: filtroStatusSelect.value,
-            ordenacao: ordenacaoSelect.value,
-          }),
-        );
-      };
-
-      window.limparFiltros = () => {
-        searchInput.value = "";
-        filtroEncarregadoSelect.value = "";
-        filtroStatusSelect.value = "";
-        ordenacaoSelect.value = "data_desc";
-
-        paginaAtual = 1;
-        ordenacaoAtual = { coluna: "data", crescente: false };
-
-        salvarFiltros();
-        aplicarFiltroPesquisa();
-      };
-
-      const onFiltroChange = () => {
-        paginaAtual = 1;
-        salvarFiltros();
-        aplicarFiltroPesquisa();
-      };
-      searchInput.addEventListener("input", onFiltroChange);
-      filtroEncarregadoSelect.addEventListener("change", onFiltroChange);
-      filtroStatusSelect.addEventListener("change", onFiltroChange);
-      ordenacaoSelect.addEventListener("change", () => {
-        const val = ordenacaoSelect.value;
-        paginaAtual = 1;
-        if (val === "data_desc")
-          ordenacaoAtual = { coluna: "data", crescente: false };
-        else if (val === "data_asc")
-          ordenacaoAtual = { coluna: "data", crescente: true };
-        else if (val === "material_asc")
-          ordenacaoAtual = { coluna: "material", crescente: true };
-        else if (val === "quantidade_desc")
-          ordenacaoAtual = { coluna: "quantidade", crescente: false };
-        else if (val === "encarregado_asc")
-          ordenacaoAtual = { coluna: "encarregado", crescente: true };
-
-        salvarFiltros();
-        aplicarOrdenacao();
-        renderizarGridLancamentos();
-      });
-
-      function aplicarFiltroPesquisa() {
-        const termo = searchInput.value.toLowerCase().trim();
-        const encarregadoSelecionado = filtroEncarregadoSelect.value;
-        const statusSelecionado = filtroStatusSelect.value;
-        let tempFiltrados = dadosAtuais.filter((item) => {
-          const matchTexto =
-            termo === "" ||
-            item.codigo.toLowerCase().includes(termo) ||
-            item.material.toLowerCase().includes(termo) ||
-            item.encarregado.toLowerCase().includes(termo);
-
-          let matchEncarregado = true;
-          if (encarregadoSelecionado)
-            matchEncarregado = item.encarregado === encarregadoSelecionado;
-
-          let matchStatus = true;
-          if (statusSelecionado)
-            matchStatus = (item.baixa || "Não") === statusSelecionado;
-
-          return matchTexto && matchEncarregado && matchStatus;
-        });
-
-        // Somatório Diário Inteligente
-        const agrupados = {};
-        tempFiltrados.forEach((item) => {
-          const key = `${item.data}_${item.codigo}_${item.encarregado}_${item.baixa || "Não"}`;
-          if (!agrupados[key]) {
-            agrupados[key] = {
-              ...item,
-              quantidade: Number(item.quantidade),
-              ids: [item.id],
-              isGrouped: false,
-            };
-          } else {
-            agrupados[key].quantidade += Number(item.quantidade);
-            agrupados[key].ids.push(item.id);
-            agrupados[key].isGrouped = true;
-          }
-        });
-        dadosFiltrados = Object.values(agrupados);
-        aplicarOrdenacao();
-        renderizarGridLancamentos();
-      }
-
-      function aplicarOrdenacao() {
-        const { coluna, crescente } = ordenacaoAtual;
-        dadosFiltrados.sort((a, b) => {
-          let vA =
-            coluna === "quantidade"
-              ? Number(a[coluna]) || 0
-              : String(a[coluna] || "").toLowerCase();
-          let vB =
-            coluna === "quantidade"
-              ? Number(b[coluna]) || 0
-              : String(b[coluna] || "").toLowerCase();
-          if (vA < vB) return crescente ? -1 : 1;
-          if (vA > vB) return crescente ? 1 : -1;
-          return 0;
-        });
-      }
-
-      function renderizarGridLancamentos() {
-        const grid = document.getElementById("grid-lancamentos");
-        grid.innerHTML = "";
-        const total = dadosFiltrados.length;
-        const paginas = Math.ceil(total / itensPorPagina) || 1;
-
-        if (total === 0) {
-          grid.innerHTML = `<div class="col-span-1 md:col-span-2 xl:col-span-3 flex flex-col items-center justify-center py-20 text-slate-400 bg-white rounded-3xl border border-slate-200 border-dashed">
-                    <div class="bg-slate-50 p-5 rounded-full mb-4 ring-8 ring-slate-50/50 opacity-50">${svgIcon("folder", "w-10 h-10")}</div>
-                    <h4 class="font-extrabold text-lg text-slate-700">Nenhum registo encontrado</h4>
-                    <p class="text-sm mt-1">Altere os filtros de pesquisa ou adicione um novo lançamento.</p>
-                </div>`;
-          document.getElementById("tabela-info").textContent = "0 Registros";
-          document.getElementById("btn-prev-page").disabled = true;
-          document.getElementById("btn-next-page").disabled = true;
-          return;
-        }
-
-        if (paginaAtual > paginas) paginaAtual = paginas;
-        if (paginaAtual < 1) paginaAtual = 1;
-        const start = (paginaAtual - 1) * itensPorPagina;
-        const end = Math.min(start + itensPorPagina, total);
-
-        dadosFiltrados.slice(start, end).forEach((item) => {
-          let dataBR = item.data?.includes("-")
-            ? item.data.split("-").reverse().join("/")
-            : item.data;
-          const idArg = item.isGrouped
-            ? `[${item.ids.map((id) => `'${id}'`).join(",")}]`
-            : `'${item.id}'`;
-          const baixaAtual = item.baixa || "Não";
-          const borderColor =
-            baixaAtual === "Sim"
-              ? "border-t-emerald-500"
-              : "border-t-amber-500";
-
-          const btnBaixa =
-            baixaAtual === "Sim"
-              ? `<button onclick="toggleBaixa(${idArg}, 'Sim')" class="flex-1 py-2.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">${svgIcon("checkDouble", "w-4 h-4")} Concluído</button>`
-              : `<button onclick="toggleBaixa(${idArg}, 'Não')" class="flex-1 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">${svgIcon("clock", "w-4 h-4")} Pendente</button>`;
-
-          grid.innerHTML += `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 border-t-4 ${borderColor} p-4 sm:p-6 flex flex-col hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="bg-slate-100/80 px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-500 tracking-widest border border-slate-200">
-                                CÓD: ${item.codigo}
-                            </div>
-                            <div class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-md text-[10px] font-bold flex items-center gap-1">
-                                ${svgIcon("calendar", "w-4 h-4")} ${dataBR}
-                            </div>
-                        </div>
-                        <h3 class="font-black text-slate-800 text-base leading-tight line-clamp-2 mb-4" title="${item.material}">${item.material}</h3>
-                        
-                        <div class="flex items-center gap-3 sm:gap-4 bg-slate-50/50 rounded-xl p-3 border border-slate-100 mb-4">
-                            <div class="bg-white p-2 rounded-lg shadow-sm text-brand-500">${svgIcon("userTie", "w-5 h-5")}</div>
-                            <div class="flex-1 min-w-0">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">Responsável</p>
-                                <p class="font-bold text-slate-700 text-sm truncate" title="${item.encarregado}">${item.encarregado}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">Qtd</p>
-                                <p class="font-black text-brand-600 text-lg leading-none">${item.quantidade.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-auto flex gap-2 pt-2 border-t border-slate-100">
-                            ${btnBaixa}
-                            ${
-                              item.isGrouped
-                                ? `<div class="w-16 flex-shrink-0 py-2.5 bg-blue-50 text-blue-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1 shadow-sm">${svgIcon("layer", "w-4 h-4")} ${item.ids.length}x</div>`
-                                : isAdmin
-                                  ? `<button onclick="deletarLancamento('${item.id}')" class="w-16 flex-shrink-0 py-2.5 bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-colors flex items-center justify-center shadow-sm" title="Excluir Registro">${svgIcon("trash", "w-4 h-4")}</button>`
-                                  : `<div class="w-16 flex-shrink-0 py-2.5 bg-slate-50 text-slate-300 rounded-xl transition-colors flex items-center justify-center shadow-sm cursor-not-allowed" title="Sem permissão para excluir">${svgIcon("trash", "w-4 h-4")}</div>`
-                            }
-                        </div>
-                    </div>`;
-        });
-
-        document.getElementById("tabela-info").textContent =
-          `Pág. ${paginaAtual} de ${paginas} (${total} itens)`;
-        document.getElementById("tabela-paginacao-info").textContent =
-          `${paginaAtual} / ${paginas}`;
-        document.getElementById("btn-prev-page").disabled = paginaAtual === 1;
-        document.getElementById("btn-next-page").disabled =
-          paginaAtual === paginas;
-      }
-
-      window.mudarPagina = (dir) => {
-        paginaAtual += dir;
-        renderizarGridLancamentos();
-      };
-      window.exportarExcel = () => {
-        if (!dadosFiltrados.length)
-          return showToast("Sem dados para exportar.", "info");
-        const data = dadosFiltrados.map((i) => ({
-          Data: i.data?.includes("-")
-            ? i.data.split("-").reverse().join("/")
-            : i.data,
-          Código: i.codigo,
-          Material: i.material,
-          Quantidade: Number(i.quantidade),
-          Encarregado: i.encarregado,
-          Baixa: i.baixa || "Não",
-        }));
-        const ws = XLSX.utils.json_to_sheet(data);
-        ws["!cols"] = [
-          { wch: 12 },
-          { wch: 15 },
-          { wch: 50 },
-          { wch: 10 },
-          { wch: 25 },
-          { wch: 10 },
-        ];
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Lançamentos");
-        XLSX.writeFile(
-          wb,
-          `DEMAP_Lançamentos_${new Date().toISOString().split("T")[0]}.xlsx`,
-        );
-        showToast("Relatório descarregado com sucesso!", "success");
-      };
-
-      // ==========================================
-      // 5. GRÁFICOS & DASHBOARD
-      // ==========================================
-      function atualizarDashboard() {
-        let total = 0;
-        let encSet = new Set();
-        let matSet = new Set();
-        let volEnc = {};
-        let topMat = {};
-        dadosAtuais.forEach((i) => {
-          total += Number(i.quantidade);
-          encSet.add(i.encarregado);
-          matSet.add(i.codigo);
-          volEnc[i.encarregado] =
-            (volEnc[i.encarregado] || 0) + Number(i.quantidade);
-          let matDesc = i.material.substring(0, 30) + "...";
-          topMat[matDesc] = (topMat[matDesc] || 0) + Number(i.quantidade);
-        });
-        document.getElementById("card-total-saidas").textContent =
-          total.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-        document.getElementById("card-total-encarregados").textContent =
-          encSet.size;
-        document.getElementById("card-total-materiais").textContent =
-          matSet.size;
-
-        let aEnc = Object.keys(volEnc)
-          .map((k) => ({ nome: k, vol: volEnc[k] }))
-          .sort((a, b) => b.vol - a.vol)
-          .slice(0, 10);
-        let aMat = Object.keys(topMat)
-          .map((k) => ({ nome: k, vol: topMat[k] }))
-          .sort((a, b) => b.vol - a.vol)
-          .slice(0, 5);
-
-        document
-          .getElementById("empty-chart-enc")
-          .classList.toggle("hidden", aEnc.length > 0);
-        document
-          .getElementById("empty-chart-mat")
-          .classList.toggle("hidden", aMat.length > 0);
-        renderizarGraficos(aEnc, aMat);
-      }
-
-      function renderizarGraficos(dEnc, dMat) {
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        const ctxE = document
-          .getElementById("chartEncarregados")
-          .getContext("2d");
-        if (chartEnc) chartEnc.destroy();
-        const gradB = ctxE.createLinearGradient(0, 0, 0, 300);
-        gradB.addColorStop(0, "#3b82f6");
-        gradB.addColorStop(1, "#6366f1");
-        chartEnc = new Chart(ctxE, {
-          type: "bar",
-          data: {
-            labels: dEnc.map((d) => d.nome.split(" ")[0]),
-            datasets: [
-              {
-                data: dEnc.map((d) => d.vol),
-                backgroundColor: gradB,
-                borderRadius: 8,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { beginAtZero: true, grid: { display: false } },
-              x: {
-                grid: { display: false },
-                ticks: { font: { weight: "bold" } },
-              },
-            },
-          },
-        });
-
-        const ctxM = document.getElementById("chartMateriais").getContext("2d");
-        if (chartMat) chartMat.destroy();
-        const gradO = ctxM.createLinearGradient(300, 0, 0, 0);
-        gradO.addColorStop(0, "#f97316");
-        gradO.addColorStop(1, "#fbbf24");
-        chartMat = new Chart(ctxM, {
-          type: "bar",
-          data: {
-            labels: dMat.map((d) => d.nome),
-            datasets: [
-              {
-                data: dMat.map((d) => d.vol),
-                backgroundColor: gradO,
-                borderRadius: 8,
-              },
-            ],
-          },
-          options: {
-            indexAxis: "y",
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { beginAtZero: true, grid: { display: false } },
-              y: {
-                grid: { display: false },
-                ticks: { font: { weight: "bold" } },
-              },
-            },
-          },
-        });
-      }
-
-      // ==========================================
-      // 6. NAVEGAÇÃO DE ABAS
-      // ==========================================
-      window.switchTab = function (tabId) {
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((el) => el.classList.remove("active"));
-        ["dashboard", "lancamentos"].forEach((id) => {
-          const btn = document.getElementById("btn-" + id);
-          btn.classList.remove(
-            "bg-brand-600/15",
-            "text-brand-400",
-            "border-brand-500",
-          );
-          btn.classList.add(
-            "hover:bg-slate-800",
-            "text-slate-400",
-            "border-transparent",
-          );
-        });
-        document.getElementById("tab-" + tabId).classList.add("active");
-        const activeBtn = document.getElementById("btn-" + tabId);
-        activeBtn.classList.remove(
-          "hover:bg-slate-800",
-          "text-slate-400",
-          "border-transparent",
-        );
-        activeBtn.classList.add(
-          "bg-brand-600/15",
-          "text-brand-400",
-          "border-brand-500",
-        );
-
-        const titulos = {
-          dashboard: "Painel Gerencial",
-          lancamentos: "Controle de Lançamentos",
-        };
-        document.getElementById("page-title").innerText = titulos[tabId];
-        closeSidebarOnMobile();
-      };
-    </script>
+    <script type="module" src="js/app.js"></script>
   </body>
 </html>
